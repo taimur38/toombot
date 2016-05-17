@@ -14,6 +14,26 @@ rtm.on(RTM_EVENTS.MESSAGE, message => {
 	if(message.type !== 'message' || message.subtype)
 		return;
 
+	/*
+
+	are they talking to toombot? then go through conversational pipeline
+
+	 is the message
+	 	- a question
+		- a statement
+		- a reaction
+			- can we connect message chains together, and track when new conversations start
+
+	 can we track 'warmth' of a channel based on message frequency (context in general)
+	 build a context object with various metrics to pass forward along with 'message'
+ 		- warmth
+	 	- conversation mode
+			- story trading
+			-
+	what about related previous messages that are for context
+
+	*/
+
 	for(let fn of pipeline) {
 		fn(message)
 			.then(response => rtm.sendMessage(response, message.channel))

@@ -11,8 +11,8 @@ const onMessage = message => {
 	const re = /(https?.\/\/+)([^ ]+)/g;
 	const found = message.text.match(re)
 
-	if(found.length == 0)
-		return;
+	if(!found || found.length == 0)
+		return Promise.reject("not a link");
 
 	const url = found[0].slice(0, found[0].length - 1)
 
