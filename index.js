@@ -4,8 +4,6 @@ const RTM_CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS.RTM;
 
 const pipeline = require('./pipeline');
 
-// var token = "xoxb-43355046886-PsLk0FAFFHHXKcYndgA2vO7s";
-
 const token = process.env.SLACK_TOKEN;
 
 var rtm = new RtmClient(token);
