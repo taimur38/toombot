@@ -12,21 +12,27 @@ this preprocessor considers only the previous n minutes of history
 
 let rooms = {}; // key: message channel value: array of message timestamps
 
-const max_history = 10 * 60 * 1000; // 10 minutes
+const max_history = 2 * 60 * 1000; // 2 minutes
 
 const Process = message => {
 
 	let prev = rooms[message.channel];
+	if(prev == undefined) {
+		rooms[message.channel] = [];
+	}
 
 	const curr = Date.now();
 
 	rooms[message.channel] = [
 		...rooms[message.channel],
-		new Date(parseFloat(message.ts) * 1000)
-	].filter(timestamp => now - timestamp < max_history);
+		message,
+	].filter(messages => curr - messages.ts < max_history);
 
-	
-
+	return Object.assign(
+		{},
+		message,
+		{ temperature: rooms[message.channel].length }
+	);
 }
 
 module.exports = {

@@ -1,18 +1,44 @@
 const RtmClient = require('@slack/client').RtmClient;
 const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 const RTM_CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS.RTM;
+const MemoryDataStore = require('@slack/client').MemoryDataStore;
 
 const preprocessors = require('./preprocessors');
 const plugins = require('./plugins');
 
 const token = process.env.SLACK_TOKEN;
 
-var rtm = new RtmClient(token);
+let users = {};
+
+var rtm = new RtmClient(token, {
+	dataStore: new MemoryDataStore({})
+});
 
 rtm.start();
 
+rtm.on(RTM_CLIENT_EVENTS.AUTHENTICATED, rtmStartData => {
+})
+
+let prev = Date.now();
+rtm.on(RTM_EVENTS.USER_TYPING, e => {
+	let curr = Date.now();
+	console.log(e)
+	console.log(curr - prev) // seems to be if you dont get another notif in 5 seconds, they are no longer typing.
+	prev = curr;
+});
+
+
 rtm.on(RTM_EVENTS.MESSAGE, message => {
-	console.log(message)
+
+	// some dumb "enrichments"
+	message.user = rtm.dataStore.getUserById(message.user);
+	message.ts = new Date(parseFloat(message.ts) * 1000);
+
+	for(let processor of preprocessors) {
+		message = processor(message) 	 // beef out messages
+	}
+
+	console.log(message);
 	if(message.type !== 'message' || message.subtype)
 		return;
 
