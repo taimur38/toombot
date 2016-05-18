@@ -40,11 +40,11 @@ rtm.on(RTM_EVENTS.MESSAGE, message => {
 
 	Promise.all(preprocessors.map(processor => processor(message)))
 		.then(resulting => resulting.reduce((m1, m2) => Object.assign({}, m1, m2)))
-		.then(message => { console.log(message); return message; })
+		// .then(message => { console.log(message); return message; })
 		.then(message => {
 			let promises = [];
 			for(let fn of plugins) {
-				promises.push(fn(plugins))
+				promises.push(fn(message))
 			}
 
 			return Promise.all(promises)
@@ -53,9 +53,10 @@ rtm.on(RTM_EVENTS.MESSAGE, message => {
 		.then(responses => {
 			//TODO: combine in intelligent way.
 			for(let r of responses) {
-				rtm.sendMessage(response, message.channel)
+				rtm.sendMessage(r, message.channel)
 			}
 		})
+		.catch(err => console.log(err))
 
 
 	/*
