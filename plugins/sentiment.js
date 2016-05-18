@@ -3,24 +3,27 @@ const alchemy = require('../lib/alchemy');
 
 const onMessage = message => {
 
-    return alchemy.getKeywords(message.text)
-        .then(keywords => {
+    if(!message.alchemy || !message.alchemy.keywords) {
+        return false;
+    }
 
-            let total_sentiment = 0;
-            for(let kw of keywords) {
-                total_sentiment += parseFloat(kw.sentiment.score) || 0;
-            }
+    const keywords = message.alchemy.keywords;
 
-            if(keywords.length > 0 && total_sentiment / keywords.length > 0.75) {
-                return 'Hey, glad to hear!';
-            }
-            else if(keywords.length > 0 && total_sentiment / keywords.length < -0.75) {
-                return 'Hey, cheer up!';
-            }
-            else {
-                throw new Error('no comments');
-            }
-        })
+    let total_sentiment = 0;
+    for(let kw of keywords) {
+        total_sentiment += parseFloat(kw.sentiment.score) || 0;
+    }
+
+    if(keywords.length > 0 && total_sentiment / keywords.length > 0.85) {
+        return Promise.resolve('Hey, glad to hear!');
+    }
+
+    if(keywords.length > 0 && total_sentiment / keywords.length < -0.85) {
+        return Promise.resolve('Hey, cheer up!');
+    }
+
+    return Promise.resolve(false)
+
 }
 
 module.exports = {

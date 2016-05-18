@@ -28,22 +28,24 @@ const onMessage = message => {
 
 			if(top_permalink.indexOf('?') > -1){
 				const t = top_permalink.split('?')[0];
-				return t.slice(0, t.length - 1);
+				return getComments(t.slice(0, t.length - 1));
 			}
 
-			return top_permalink;
+			console.log('hi')
+			return getComments(top_permalink);
 
 		})
-		.then(permalink => { return session.get(`${permalink}.json`)})
+		.catch(err => { console.log('hi'); console.log(err) })
+}
+
+const getComments = permalink => session.get(`${permalink}.json`)
 		.then(rsp => {
 			if(rsp.data && rsp.data.length >= 2)
 				return rsp.data[1].data.children;
 
 			return false;
 		})
-		.then(comments => comments[0].data.body)
-		.catch(err => console.log(err))
-}
+		.then(comments => comments ? comments[0].data.body : false)
 
 module.exports = {
 	onMessage

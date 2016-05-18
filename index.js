@@ -36,11 +36,13 @@ rtm.on(RTM_EVENTS.MESSAGE, message => {
 	// some dumb "enrichments"
 	message.user = rtm.dataStore.getUserById(message.user);
 	message.ts = new Date(parseFloat(message.ts) * 1000);
+	if(message.user.name == 'toombot')
+		return;
 
 
 	Promise.all(preprocessors.map(processor => processor(message)))
 		.then(resulting => resulting.reduce((m1, m2) => Object.assign({}, m1, m2)))
-		// .then(message => { console.log(message); return message; })
+		.then(message => { console.log(message); return message; })
 		.then(message => {
 			let promises = [];
 			for(let fn of plugins) {
@@ -49,7 +51,8 @@ rtm.on(RTM_EVENTS.MESSAGE, message => {
 
 			return Promise.all(promises)
 		})
-		.then(responses => responses.filter(r => r)) // if it fails, dont throw error
+		.then(responses => { console.log(responses); return responses; })
+		.then(responses => responses.filter(r => r))
 		.then(responses => {
 			//TODO: combine in intelligent way.
 			for(let r of responses) {

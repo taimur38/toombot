@@ -8,6 +8,10 @@ const Process = message => {
 		.then(things => Object.assign({}, message, {
 			alchemy: things
 		}))
+		.catch(err => {
+			console.log("Preprocessor: " + err);
+			return message;
+		})
 }
 
 module.exports = {
