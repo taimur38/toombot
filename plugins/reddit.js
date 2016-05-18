@@ -12,7 +12,7 @@ const onMessage = message => {
 	const found = message.text.match(re)
 
 	if(!found || found.length == 0)
-		return Promise.reject("not a link");
+		return Promise.resolve(false);
 
 	const url = found[0].slice(0, found[0].length - 1)
 
@@ -22,7 +22,7 @@ const onMessage = message => {
 			const posts = results.data.children;
 
 			if(posts.length == 0)
-				throw new Error('no posts');
+				return false;
 
 			const top_permalink = posts[0].data.permalink;
 
@@ -39,7 +39,7 @@ const onMessage = message => {
 			if(rsp.data && rsp.data.length >= 2)
 				return rsp.data[1].data.children;
 
-			throw new Error('no comments')
+			return false;
 		})
 		.then(comments => comments[0].data.body)
 		.catch(err => console.log(err))

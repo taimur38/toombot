@@ -1,7 +1,5 @@
 const alchemy = require("../lib/alchemy");
 
-alchemy.init()
-
 const onMessage = message => {
 
 	// if toombot in message

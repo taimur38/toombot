@@ -28,10 +28,12 @@ const Process = message => {
 		message,
 	].filter(messages => curr - messages.ts < max_history);
 
-	return Object.assign(
-		{},
-		message,
-		{ temperature: rooms[message.channel].length }
+	return new Promise((resolve, reject) =>
+		resolve(Object.assign(
+			{},
+			message,
+			{ temperature: rooms[message.channel].length }
+		))
 	);
 }
 

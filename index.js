@@ -30,17 +30,33 @@ rtm.on(RTM_EVENTS.USER_TYPING, e => {
 
 rtm.on(RTM_EVENTS.MESSAGE, message => {
 
+	if(message.type !== 'message' || message.subtype)
+		return;
+
 	// some dumb "enrichments"
 	message.user = rtm.dataStore.getUserById(message.user);
 	message.ts = new Date(parseFloat(message.ts) * 1000);
 
-	for(let processor of preprocessors) {
-		message = processor(message) 	 // beef out messages
-	}
 
-	console.log(message);
-	if(message.type !== 'message' || message.subtype)
-		return;
+	Promise.all(preprocessors.map(processor => processor(message)))
+		.then(resulting => resulting.reduce((m1, m2) => Object.assign({}, m1, m2)))
+		.then(message => { console.log(message); return message; })
+		.then(message => {
+			let promises = [];
+			for(let fn of plugins) {
+				promises.push(fn(plugins))
+			}
+
+			return Promise.all(promises)
+		})
+		.then(responses => responses.filter(r => r)) // if it fails, dont throw error
+		.then(responses => {
+			//TODO: combine in intelligent way.
+			for(let r of responses) {
+				rtm.sendMessage(response, message.channel)
+			}
+		})
+
 
 	/*
 
@@ -61,10 +77,4 @@ rtm.on(RTM_EVENTS.MESSAGE, message => {
 	what about related previous messages that are for context
 
 	*/
-
-	for(let fn of plugins) {
-		fn(message)
-			.then(response => rtm.sendMessage(response, message.channel))
-			.catch(err => console.log(err))
-	}
 })
