@@ -25,11 +25,19 @@ const Process = message => {
 		message,
 	].filter(messages => curr - messages.ts < max_history);
 
+	let people = rooms[message.channel].map(m => m.user.name);
+	people = people.filter((p, i) => people.indexOf(p) == i);
+
 	return new Promise((resolve, reject) =>
 		resolve(Object.assign(
 			{},
 			message,
-			{ temperature: rooms[message.channel].length }
+			{
+				temperature: {
+					recentMessages: rooms[message.channel].length,
+					numParticipants: people.length
+				}
+			}
 		))
 	);
 }
