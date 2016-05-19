@@ -14,8 +14,7 @@ const token = process.env.SLACK_TOKEN;
 let users = {};
 
 var rtm = new RtmClient(token, {
-	dataStore: new MemoryDataStore({}),
-//	logLevel: 'debug'
+	dataStore: new MemoryDataStore({})
 });
 
 rtm.start();
@@ -31,25 +30,23 @@ rtm.on(RTM_EVENTS.USER_TYPING, e => {
 	prev = curr;
 });
 
-let message_source = Rx.Observable.create(observer => {
-	console.log('creating things')
-	rtm.on(RTM_EVENTS.MESSAGE, message => {
-		console.log('message received');
-		observer.onNext(message)
-	})
+const message_source = Rx.Observable.create(observer => {
+	rtm.on(RTM_EVENTS.MESSAGE, message => observer.onNext(message));
+
+
 });
+const typing_source = Rx.Observable.create(observer => {
+	rtm.on(RTM_EVENTS.USER_TYPING, e => observer.onNext(e));
+})
 
-
+let count = 0;
 const messages = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
 	.map(message => Object.assign({}, message, { user: rtm.dataStore.getUserById(message.user)}))
 	.map(message => Object.assign({}, message, { ts: new Date(parseFloat(message.ts) * 1000) } ))
-	.map(x => { console.log(x); return x})
 	.filter(message => message.user.name != 'toombot')
-	.flatMap(message => Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message)))))
-	.map(m => { console.log(m); return m;})
-	.reduce((acc, augmented) => Object.assign({}, acc, augmented), {})
-	// .subscribe(msg => console.log(msg), err => console.log(err), all => console.log('a;;' + all))
+	.flatMap(message => Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message))))) // returns n observables
+	.subscribe(x => console.log(`${count++} ${x}`))
 
 
 
