@@ -1,4 +1,7 @@
+
+const wrapper = fn => message => ({ content: fn(message), channel: message.channel })
+
 module.exports = [
-	require('./reddit').onMessage,
-    require('./sentiment').onMessage
+	wrapper(require('./reddit').onMessage),
+    wrapper(require('./sentiment').onMessage)
 ]

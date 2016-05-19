@@ -2,16 +2,13 @@ const RtmClient = require('@slack/client').RtmClient;
 const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 const RTM_CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS.RTM;
 const MemoryDataStore = require('@slack/client').MemoryDataStore;
-
 const Rx = require('rx');
-// const Scheduler = Rx.Scheduler.default;
+
 
 const preprocessors = require('./preprocessors');
 const plugins = require('./plugins');
 
 const token = process.env.SLACK_TOKEN;
-
-let users = {};
 
 var rtm = new RtmClient(token, {
 	dataStore: new MemoryDataStore({})
@@ -22,33 +19,27 @@ rtm.start();
 rtm.on(RTM_CLIENT_EVENTS.AUTHENTICATED, rtmStartData => {
 })
 
-let prev = Date.now();
-rtm.on(RTM_EVENTS.USER_TYPING, e => {
-	let curr = Date.now();
-	// console.log(e)
-	// console.log(curr - prev) // seems to be if you dont get another notif in 5 seconds, they are no longer typing.
-	prev = curr;
-});
-
 const message_source = Rx.Observable.create(observer => {
 	rtm.on(RTM_EVENTS.MESSAGE, message => observer.onNext(message));
-
-
 });
-const typing_source = Rx.Observable.create(observer => {
-	rtm.on(RTM_EVENTS.USER_TYPING, e => observer.onNext(e));
-})
 
-let count = 0;
-const messages = message_source
+const processed = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
 	.map(message => Object.assign({}, message, { user: rtm.dataStore.getUserById(message.user)}))
 	.map(message => Object.assign({}, message, { ts: new Date(parseFloat(message.ts) * 1000) } ))
 	.filter(message => message.user.name != 'toombot')
-	.flatMap(message => Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message))))) // returns n observables
-	.subscribe(x => console.log(`${count++} ${x}`))
+	.flatMap(message => Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message)))))
+	.map(m => m.reduce((p, c) => Object.assign({}, p, c)))
+	.map(x => {console.log(x); return x;})
 
 
+processed.flatMap(message => Rx.Observable.fromPromise(Promise.all(plugins.map(p => p(message)))))
+	.map(r => { console.log(r); return r; })
+	.filter(r => r.content)
+	//.map(responses => ({ content: responses.reduce((p, c) => p + " " + c, ""), channel: responses[0].channel }))
+	.subscribe(responses => {
+		responses.forEach(r => rtm.sendMessage(r.content, r.channel))
+	})
 
 
 // const preprocesss_pipeline = Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message))))
