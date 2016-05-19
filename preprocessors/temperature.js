@@ -16,15 +16,12 @@ const max_history = 2 * 60 * 1000; // 2 minutes
 
 const Process = message => {
 
-	let prev = rooms[message.channel];
-	if(prev == undefined) {
-		rooms[message.channel] = [];
-	}
+	let prev = rooms[message.channel] || [];
 
 	const curr = Date.now();
 
 	rooms[message.channel] = [
-		...rooms[message.channel],
+		...prev,
 		message,
 	].filter(messages => curr - messages.ts < max_history);
 
