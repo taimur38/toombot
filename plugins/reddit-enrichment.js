@@ -8,12 +8,12 @@ const session = axios.create({
 })
 const onMessage = message => {
 
-	if(message.text.split(' ').length < 5)
+	if(!message.alchemy || message.text.split(' ').length < 5)
 		return Promise.resolve(false);
 
 
 	let concepts = message.alchemy.concepts.filter((c) => parseFloat(c.relevance) > 0.7);
-	let entities = message.alchemy.entities.filter((c) => parseFloat(c.relevance) > 0.7);
+	let entities = message.alchemy.entities.filter((c) => parseFloat(c.relevance) > 0.7 || (c.type == 'Person' && parseFloat(c.relevance) > 0.5));
 
 	let concept_merge = [...concepts, ...entities].reduce((all, c) => `${all} ${c.text}`, '');
 
