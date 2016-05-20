@@ -24,6 +24,9 @@ const onMessage = message => {
 			if(posts.length == 0)
 				return false;
 
+			if(posts[0].data.num_comments == 0)
+				return false;
+
 			const top_permalink = posts[0].data.permalink;
 
 			if(top_permalink.indexOf('?') > -1){

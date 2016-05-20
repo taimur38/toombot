@@ -16,8 +16,7 @@ var rtm = new RtmClient(token, {
 
 rtm.start();
 
-rtm.on(RTM_CLIENT_EVENTS.AUTHENTICATED, rtmStartData => {
-})
+// rtm.on(RTM_CLIENT_EVENTS.AUTHENTICATED, rtmStartData => { })
 
 const message_source = Rx.Observable.create(observer => {
 	rtm.on(RTM_EVENTS.MESSAGE, message => observer.onNext(message));
