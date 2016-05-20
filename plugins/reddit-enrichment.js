@@ -15,7 +15,7 @@ const onMessage = message => {
 	let concepts = message.alchemy.concepts.filter((c) => parseFloat(c.relevance) > 0.7);
 	let entities = message.alchemy.entities.filter((c) => parseFloat(c.relevance) > 0.7 || (c.type == 'Person' && parseFloat(c.relevance) > 0.5));
 
-	let concept_merge = [...concepts, ...entities].reduce((all, c) => `${all} ${c.text}`, '');
+	let concept_merge = [...entities].reduce((all, c) => `${all} ${c.text}`, '');
 
 	if(!concept_merge)
 		return Promise.resolve(false);
