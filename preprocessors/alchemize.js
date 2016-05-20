@@ -5,12 +5,10 @@ const Process = message => {
 	const text = message.text;
 
 	return alchemy.getAllTheThings(text)
-		.then(things => Object.assign({}, message, {
-			alchemy: things
-		}))
+		.then(things => { alchemy: things })
 		.catch(err => {
 			console.log("Preprocessor: " + err);
-			return message;
+			return {};
 		})
 }
 

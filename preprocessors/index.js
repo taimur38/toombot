@@ -1,5 +1,8 @@
+
+const wrapper = fn => message => Object.assign({}, message, fn(message));
+
 module.exports = [
-	require('./alchemize').Process,
-	require('./temperature').Process,
-	require('./tonalize').Process
+	wrapper(require('./alchemize').Process),
+	wrapper(require('./temperature').Process),
+	wrapper(require('./tonalize').Process)
 ]
