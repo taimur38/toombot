@@ -31,7 +31,6 @@ const processed = message_source
 	.flatMap(message => Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message)))))
 	.map(m => m.reduce((p, c) => Object.assign({}, p, c)))
 	.map(x => { console.log(x); return x; })
-	.throttle(1000)
 
 
 processed.flatMap(message => Rx.Observable.fromPromise(Promise.all(plugins.map(p => p(message)))))
