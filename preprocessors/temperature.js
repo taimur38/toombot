@@ -28,18 +28,12 @@ const Process = message => {
 	let people = rooms[message.channel].map(m => m.user.name);
 	people = people.filter((p, i) => people.indexOf(p) == i);
 
-	return new Promise((resolve, reject) =>
-		resolve(Object.assign(
-			{},
-			message,
-			{
-				temperature: {
-					recentMessages: rooms[message.channel].length,
-					numParticipants: people.length
-				}
-			}
-		))
-	);
+	return Promise.resolve({
+		temperature: {
+			recentMessages: rooms[message.channel].length,
+			numParticipants: people.length
+		}
+	});
 }
 
 module.exports = {

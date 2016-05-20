@@ -3,7 +3,7 @@ const axios = require('axios');
 const onMessage = message => {
 
 	if(!message.alchemy || !message.alchemy.keywords) {
-		return false;
+		return Promise.resolve(false);
 	}
 
 	const keywords = message.alchemy.keywords;

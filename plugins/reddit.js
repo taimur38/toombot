@@ -31,11 +31,10 @@ const onMessage = message => {
 				return getComments(t.slice(0, t.length - 1));
 			}
 
-			console.log('hi')
 			return getComments(top_permalink);
 
 		})
-		.catch(err => { console.log('hi'); console.log(err) })
+		.catch(err => console.log(err))
 }
 
 const getComments = permalink => session.get(`${permalink}.json`)

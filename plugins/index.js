@@ -1,6 +1,9 @@
+
+const wrapper = fn => message => fn(message).then(res => ({ content: res, channel: message.channel }))
+
 module.exports = [
-	require('./reddit').onMessage,
-    require('./sentiment').onMessage,
-    require('./reddit-enrichment').onMessage,
-    require('./image-tagging').onMessage
+	wrapper(require('./reddit').onMessage),
+    wrapper(require('./sentiment').onMessage),
+    wrapper(require('./reddit-enrichment').onMessage),
+    wrapper(require('./image-tagging').onMessage)
 ]
