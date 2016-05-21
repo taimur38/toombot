@@ -8,14 +8,10 @@ const session = axios.create({
 })
 const onMessage = message => {
 
-	const re = /(https?.\/\/+)([^ ]+)/g;
-	const found = message.text.match(re)
-
-	if(!found || found.length == 0)
+	if(message.links.length == 0)
 		return Promise.resolve(false);
 
-	const url = found[0].slice(0, found[0].length - 1)
-
+	const url = message.links[0].url;
 	return session.get(`/search.json?q=url:${url}`)
 		.then(rsp => rsp.data)
 		.then(results => {

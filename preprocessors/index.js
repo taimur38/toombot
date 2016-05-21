@@ -6,5 +6,6 @@ module.exports = [
 	wrapper(require('./temperature').Process),
 	wrapper(require('./tonalize').Process),
 	wrapper(require('./image-ize').Process),
-	wrapper(require('./isQuestion').Process)
+	wrapper(require('./isQuestion').Process),
+	wrapper(require('./links').Process)
 ]
