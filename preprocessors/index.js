@@ -1,4 +1,3 @@
-
 const wrapper = fn => message => fn(message).then(res => Object.assign({}, message, res))
 
 module.exports = [

@@ -18,7 +18,7 @@ const onMessage = message => {
 			const pods = xpath.select('//pod[contains(@title, "Result")]/subpod/plaintext', xml)
 			if(pods.length == 0)
 				return false;
-				
+
 			return pods[0].firstChild.data;
 		})
 }

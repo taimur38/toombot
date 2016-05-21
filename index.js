@@ -35,7 +35,7 @@ const message_source = Rx.Observable.create(observer => {
 
 const processed = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
-	.map(m => slackClean(m))
+	.map(slackClean)
 	.filter(message => message.user.name != 'toombot')
 	.flatMap(message => Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message)))))
 	.map(m => m.reduce((p, c) => Object.assign({}, p, c)))

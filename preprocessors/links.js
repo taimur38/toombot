@@ -1,4 +1,3 @@
-
 const Process = message => {
 
 	const re = /(https?.\/\/+)([^ ]+)/g;
