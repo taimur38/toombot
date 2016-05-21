@@ -13,8 +13,7 @@ const onMessage = message => {
 	return axios.get(`https://medium.com/p/${id}/quotes`)
 		.then(rsp => rsp.data.split("</x>")[1])
 		.then(j => JSON.parse(j))
-		.then(parsed => `Article Quote:
-> ${parsed.payload.value[0].paragraphs[0].text}`)
+		.then(parsed => `> ${parsed.payload.value[0].paragraphs[0].text}`)
 		.catch(err => { console.log(err); return false })
 
 }
