@@ -3,6 +3,9 @@ const Process = message => {
 
 	const re = /(https?.\/\/+)([^ ]+)/g;
 	const found = message.text.match(re) || [];
+	if(!found || found.length == 0)
+		return Promise.resolve({ links: [] })
+
 	const url = found[0].slice(0, found[0].length - 1)
 
 	return Promise.resolve({
