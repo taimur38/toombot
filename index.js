@@ -18,14 +18,24 @@ rtm.start();
 
 // rtm.on(RTM_CLIENT_EVENTS.AUTHENTICATED, rtmStartData => { })
 
+const slackClean = message => {
+	return Object.assign({}, message, {
+		user: rtm.dataStore.getUserById(message.user),
+		ts: new Date(parseFloat(message.ts) * 1000),
+		channel:
+			rtm.dataStore.getChannelById(message.channel) ||
+			rtm.dataStore.getGroupById(message.channel) ||
+			rtm.dataStore.getDMById(message.channel)
+	})
+}
+
 const message_source = Rx.Observable.create(observer => {
 	rtm.on(RTM_EVENTS.MESSAGE, message => observer.onNext(message));
 });
 
 const processed = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
-	.map(message => Object.assign({}, message, { user: rtm.dataStore.getUserById(message.user)}))
-	.map(message => Object.assign({}, message, { ts: new Date(parseFloat(message.ts) * 1000) } ))
+	.map(m => slackClean(m))
 	.filter(message => message.user.name != 'toombot')
 	.flatMap(message => Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message)))))
 	.map(m => m.reduce((p, c) => Object.assign({}, p, c)))
