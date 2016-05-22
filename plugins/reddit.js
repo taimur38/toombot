@@ -62,7 +62,7 @@ const getComments = permalink => session.get(`${permalink}.json`)
 					text: c.body,
 					length: c.body.split(' ').length,
 					isDiscussed: 0, // something with replies
-					isSummary: c.body.indexOf("tl;dr") > -1 || c.body.indexOf("tldr") > -1 || c.body.indexOf("summary") > -1,
+					isSummary: c.body.indexOf("tl;dr") > -1 || c.body.indexOf("tldr") > -1 || c.body.indexOf("summary") > -1 || c.body_html.indexOf("blockquote") > -1,
 					isMedia: c.body.indexOf("http") > -1,
 					isGilded: c.gilded > 0,
 					score: c.score
