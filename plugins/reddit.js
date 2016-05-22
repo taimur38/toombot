@@ -48,7 +48,35 @@ const getComments = permalink => session.get(`${permalink}.json`)
 
 			return false;
 		})
-		.then(comments => comments ? comments[0].data.body : false)
+		.then(comments => {
+			if(!comments)
+				return false;
+
+			if(comments.length == 1)
+				return comments[0].data.body
+
+			const scored = comments.slice(0, Math.min(5, comments.length - 1))
+				.map(c => c.data)
+				.filter(c => c.body.indexOf("[deleted]") == -1)
+				.map(c => ({
+					text: c.body,
+					length: c.body.split(' ').length,
+					isDiscussed: 0, // something with replies
+					isSummary: c.body.indexOf("tl;dr") > -1 || c.body.indexOf("tldr") > -1 || c.body.indexOf("summary") > -1,
+					isMedia: c.body.indexOf("http") > -1,
+					isGilded: c.gilded > 0,
+					score: c.score
+				}))
+				.map(c => ({
+					text: c.text,
+					score: 1000 * c.isSummary + 200 * c.isMedia + 200 * c.isGilded + c.score
+				}))
+				.sort((a, b) => b.score - a.score)
+
+			console.log(scored)
+
+			return scored[0].text;
+		})
 
 module.exports = {
 	onMessage
