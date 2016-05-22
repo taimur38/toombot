@@ -5,13 +5,19 @@ const session = axios.create({
 	headers: {
 		'User-Agent': '/u/taimur38'
 	}
-})
+});
+
 const onMessage = message => {
 
 	if(message.links.length == 0)
 		return Promise.resolve(false);
 
-	const url = message.links[0].url;
+	const link = message.links[0];
+	let url = link.url;
+
+	if(link.domain.startsWith("m."))
+		url = url.replace("m.", "")
+
 	return session.get(`/search.json?q=url:${url}`)
 		.then(rsp => rsp.data)
 		.then(results => {
@@ -31,7 +37,6 @@ const onMessage = message => {
 			}
 
 			return getComments(top_permalink);
-
 		})
 		.catch(err => console.log(err))
 }
