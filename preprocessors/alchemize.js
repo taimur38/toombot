@@ -8,6 +8,7 @@ const Process = message => {
 		.then(things => ({ alchemy: things }))
 		.catch(err => {
 			console.log("Preprocessor: " + err);
+            console.log(err);
 			return;
 		})
 }

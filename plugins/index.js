@@ -7,5 +7,6 @@ module.exports = [
 	wrapper(require('./image-tagging').onMessage),
 	wrapper(require('./hot').onMessage),
 	wrapper(require('./wolfram').onMessage),
-	wrapper(require('./medium').onMessage)
+	wrapper(require('./medium').onMessage),
+    wrapper(require('./genius').onMessage)
 ]
