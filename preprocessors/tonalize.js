@@ -7,5 +7,7 @@ const Process = message => {
 }
 
 module.exports = {
-	Process
+	Process,
+	key: 'tone',
+	requirements: []
 }

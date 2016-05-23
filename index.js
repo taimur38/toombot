@@ -5,7 +5,7 @@ const MemoryDataStore = require('@slack/client').MemoryDataStore;
 const Rx = require('rx');
 
 
-const preprocessors = require('./preprocessors');
+const preprocessor = require('./preprocessors');
 const plugins = require('./plugins');
 
 const token = process.env.SLACK_TOKEN;
@@ -37,8 +37,7 @@ const processed = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
 	.map(slackClean)
 	.filter(message => message.user.name != 'toombot')
-	.flatMap(message => Rx.Observable.fromPromise(Promise.all(preprocessors.map(p => p(message)))))
-	.map(m => m.reduce((p, c) => Object.assign({}, p, c)))
+	.flatMap(message => Rx.Observable.fromPromise(preprocessor(message)))
 	.map(x => { console.log(x); return x; })
 
 

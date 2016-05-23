@@ -13,5 +13,7 @@ const Process = message => {
 }
 
 module.exports = {
-	Process
+	requirements: [],
+	Process,
+	key: 'alchemy'
 }

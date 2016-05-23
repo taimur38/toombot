@@ -2,12 +2,18 @@ const alchemy = require('../lib/alchemy');
 
 const Process = message => {
 
-	const re = /(https?:\/\/.*\.(?:png|jpg))([^ ]+)/g;
+	/*const re = /(https?:\/\/.*\.(?:png|jpg))([^ ]+)/g;
 	const found = message.text.match(re);
 	if(!found)
 		return Promise.resolve();
 
-	let image_link = found[0].replace('>','');
+	let image_link = found[0].replace('>','');*/
+
+	const links = message.links;
+	if(links.length == 0)
+		return Promise.resolve();
+
+	const image_link = message.links[0].url;
 
 	return alchemy.getImageKeywords(image_link)
 		.then(things => ({ imageTags: things }))
@@ -17,5 +23,7 @@ const Process = message => {
 }
 
 module.exports = {
-	Process
+	Process,
+	key: 'imageTags',
+	requirements: ['links']
 }

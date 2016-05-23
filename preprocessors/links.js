@@ -1,5 +1,6 @@
 const Process = message => {
 
+	console.log(message)
 	const re = /(https?.\/\/+)([^ ]+)/g;
 	const found = message.text.match(re) || [];
 	if(!found || found.length == 0)
@@ -16,5 +17,7 @@ const Process = message => {
 }
 
 module.exports = {
-	Process
+	Process,
+	key: 'links',
+	requirements: []
 }

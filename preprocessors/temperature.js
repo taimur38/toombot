@@ -16,6 +16,7 @@ const max_history = 2 * 60 * 1000; // 2 minutes
 
 const Process = message => {
 
+	console.log(message)
 	let prev = rooms[message.channel] || [];
 
 	const curr = Date.now();
@@ -37,5 +38,7 @@ const Process = message => {
 }
 
 module.exports = {
-	Process
+	Process,
+	key: 'temperature',
+	requirements: []
 }
