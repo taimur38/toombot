@@ -8,20 +8,20 @@ const conceptInsights = {
 };
 
 const relationshipExtraction = {
-    username: process.env.REL_EXTRACT_USER,
-    password: process.env.REL_EXTRACT_PASS
+	username: process.env.REL_EXTRACT_USER,
+	password: process.env.REL_EXTRACT_PASS
 }
 
 const tone = {
-    username: process.env.TONE_ANALYZER_USER,
-    password: process.env.TONE_ANALYZER_PASS
+	username: process.env.TONE_ANALYZER_USER,
+	password: process.env.TONE_ANALYZER_PASS
 };
 
 module.exports = {
-    alchemy_key,
-    alchemy_keys,
+	alchemy_key,
+	alchemy_keys,
 	conceptInsights,
 	relationshipExtraction,
 	tone,
-    geniusToken
+	geniusToken
 }
