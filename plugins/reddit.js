@@ -69,7 +69,7 @@ const getComments = permalink => session.get(`${permalink}.json`)
 				}))
 				.map(c => ({
 					text: c.text,
-					score: 1000 * c.isSummary + 200 * c.isMedia + 200 * c.isGilded + c.score
+					score: 2000 * c.isSummary + 200 * c.isMedia + 200 * c.isGilded + c.score
 				}))
 				.sort((a, b) => b.score - a.score)
 
