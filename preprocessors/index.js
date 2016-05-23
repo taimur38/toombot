@@ -17,8 +17,10 @@ let orders = {};
 const calculate = (service_key) => {
 
 	if(orders[service_key]) {
-		return orders[service_key]
+		return orders[service_key];
 	}
+
+	orders[service_key] = -100;    // use this to detect require cycles
 
 	const reqs = proc_dict[service_key].requirements;
 
@@ -29,17 +31,19 @@ const calculate = (service_key) => {
 
 	let max_req = -1;
 	for(let s of reqs) {
-		max_req = Math.max(max_req, calculate(s) + 1)
+		const dependency_order = calculate(s);
+		if(dependency_order < 0) {
+			console.log("there is a requirement cycle in preprocessors");
+			process.exit(1);
+		}
+		max_req = Math.max(max_req, dependency_order + 1);
 	}
 
 	orders[service_key] = max_req;
 	return max_req;
 }
 
-for(let p of processors) {
-	calculate(p.key); 	// builds out the 'orders' dictionary
-}
-
+processors.forEach(p => calculate(p.key)); // builds out 'orders' dict
 
 let scheduled_procs = [];   // array of arrays of processors
 for(let service_key in orders) {
@@ -49,7 +53,6 @@ for(let service_key in orders) {
 	}
 
 	curr.push(proc_dict[service_key].Process)
-
 	scheduled_procs[orders[service_key]] = curr;
 }
 

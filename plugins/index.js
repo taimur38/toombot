@@ -8,5 +8,6 @@ module.exports = [
 	wrapper(require('./hot').onMessage),
 	wrapper(require('./wolfram').onMessage),
 	wrapper(require('./medium').onMessage),
-    wrapper(require('./genius').onMessage)
+	wrapper(require('./genius').onMessage),
+	//wrapper(require('./context-debug').onMessage)
 ]
