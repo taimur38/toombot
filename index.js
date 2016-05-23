@@ -10,7 +10,7 @@ const plugins = require('./plugins');
 
 const token = process.env.SLACK_TOKEN;
 
-var rtm = new RtmClient(token, {
+const rtm = new RtmClient(token, {
 	dataStore: new MemoryDataStore({})
 });
 
