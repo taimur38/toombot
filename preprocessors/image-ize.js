@@ -8,11 +8,14 @@ const Process = message => {
 
 	const image_link = message.links[0].url;
 
-	return alchemy.getImageKeywords(image_link)
-		.then(things => ({ imageTags: things }))
-		.catch(err => {
-			console.log("Preprocessor: " + err);
-		})
+	if(image_link.match(/png|jpg|jpeg|gif/)) {
+		return alchemy.getImageKeywords(image_link)
+			.then(things => ({ imageTags: things }))
+			.catch(err => {
+				console.log("Preprocessor: " + err);
+			})
+		}
+	return Promise.resolve();
 }
 
 module.exports = {
