@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const onMessage = message => {
 
-	if(!message.alchemy || !message.alchemy.entities) {
+	if(!message.alchemy || !message.alchemy.entities || !message.alchemy.sentiment || !message.alchemy.sentiment.score) {
 		return Promise.resolve(false);
 	}
 
@@ -21,13 +21,13 @@ const onMessage = message => {
 
 	let emotions = message.alchemy.emotions;
 
-	if(entities.length > 0 && total_sentiment / entities.length > 0.8) {
+	if(entities.length > 0 && parseFloat(message.alchemy.sentiment.score) > 0.75) {
 		if(parseFloat(emotions.joy) > 0.3) {
 			return Promise.resolve(`Hey, glad to hear about ${most_relevant_word}, ${message.user.name}!`);
 		}
 	}
 
-	if(entities.length > 0 && total_sentiment / entities.length < -0.8) {
+	if(entities.length > 0 && parseFloat(message.alchemy.sentiment.score) < -0.75) {
 		if(parseFloat(emotions.fear) > 0.3) {
 			return Promise.resolve(`Hey, dont be scared about ${most_relevant_word}, ${message.user.name}!`);
 		}
