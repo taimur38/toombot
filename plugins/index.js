@@ -10,4 +10,5 @@ module.exports = [
 	wrapper(require('./medium').onMessage),
 	wrapper(require('./genius').onMessage),
 	//wrapper(require('./context-debug').onMessage)
+	wrapper(require('./verge').onMessage)
 ]

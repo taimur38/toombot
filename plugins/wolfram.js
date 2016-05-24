@@ -21,6 +21,7 @@ const onMessage = message => {
 
 			return pods[0].firstChild.data;
 		})
+		.catch(err => { console.log(err); return false; })
 }
 
 module.exports = {
