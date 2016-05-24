@@ -2,13 +2,6 @@ const alchemy = require('../lib/alchemy');
 
 const Process = message => {
 
-	/*const re = /(https?:\/\/.*\.(?:png|jpg))([^ ]+)/g;
-	const found = message.text.match(re);
-	if(!found)
-		return Promise.resolve();
-
-	let image_link = found[0].replace('>','');*/
-
 	const links = message.links;
 	if(links.length == 0)
 		return Promise.resolve();
