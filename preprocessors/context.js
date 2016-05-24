@@ -29,7 +29,7 @@ const Process = message => {
 // if there is a pronoun at all, replace it
 	if(prev_subject.text) {
 		for(let p of pronouns) {
-			if(message.text.indexOf(p) > -1) {
+			if(message.text.split(' ').indexOf(p) > -1) {
 				return Promise.resolve({
 					[key]: message.text.replace(p, prev_subject.text)
 				})
