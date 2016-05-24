@@ -4,6 +4,9 @@ const key = 'context_correction'
 
 const Process = message => {
 
+	if(!message.alchemy || !message.alchemy.relations) {
+		return Promise.resolve();
+	}
 	const relations = message.alchemy.relations;
 	let prev_subject = contexts[message.channel.id] || {};
 
