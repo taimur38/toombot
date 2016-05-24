@@ -23,7 +23,9 @@ const onMessage = message => {
 					try {
 						const xml = parser.parseFromString(s);
 						const test = xpath.select('/q/span', xml);
-						response = response + `> ${test[0].firstChild.data}\n`
+						const text = test[0].firstChild.data;
+						if(text)
+							response = response + `> ${text}\n`
 					}
 					catch(e) {
 						console.log(e);
@@ -37,7 +39,9 @@ const onMessage = message => {
 					try{
 						const xml = parser.parseFromString(n);
 						const test = xpath.select('/q', xml);
-						response = response + `> ${test[0].firstChild.data}\n`
+						const text = test[0].firstChild.data;
+						if(text)
+							response = response + `> ${text}\n`
 					}
 					catch(e) {
 						console.log(e)
