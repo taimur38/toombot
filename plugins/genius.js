@@ -12,7 +12,7 @@ const onMessage = message => {
 
 	let entities = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords].reduce((big_string, entity) => {
 		let lower_entity = entity.text.toLowerCase().replace(' ', '%20');
-		return parseFloat(entity.relevance) > 0.3 && big_string.indexOf(lower_entity) < 0 ? `${big_string}%20${lower_entity}` : `${big_string}`;
+		return parseFloat(entity.relevance) > 0.3 && big_string.indexOf(lower_entity) < 0 && lower_entity != 'song' ? `${big_string}%20${lower_entity}` : `${big_string}`;
 	}, '')
 
 	return axios.get(`https://api.genius.com/search?q=${entities}&access_token=${auth.geniusToken}`)

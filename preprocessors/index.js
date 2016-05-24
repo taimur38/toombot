@@ -49,7 +49,7 @@ let scheduled_procs = [];   // array of arrays of processors
 for(let service_key in orders) {
 	let curr = [];
 	if(orders[service_key] < scheduled_procs.length) {
-		curr = scheduled_procs[orders[service_key]];
+		curr = scheduled_procs[orders[service_key]] || [];
 	}
 
 	curr.push(proc_dict[service_key].Process)
