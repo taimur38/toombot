@@ -31,7 +31,7 @@ const Process = message => {
 		for(let p of pronouns) {
 			if(message.text.split(' ').indexOf(p) > -1) {
 				return Promise.resolve({
-					[key]: message.text.replace(p, prev_subject.text)
+					[key]: message.text.replace(new RegExp(`\\b${p}\\b`, 'g'), prev_subject.text)
 				})
 			}
 		}
