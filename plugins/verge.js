@@ -15,12 +15,37 @@ const onMessage = message => {
 	return axios.get(relevant_links[0].url)
 		.then(rsp => {
 
-			const found = rsp.data.match(/<q .+><span>(.+)<\/q>/g)
-			if(found && found.length > 0) {
-				const xml = parser.parseFromString(found[0]);
-				const test = xpath.select('/q/span', xml);
-				return `> ${test[0].firstChild.data}`
+			let response = "";
+
+			const span = rsp.data.match(/<q .+><span>(.+)<\/q>/g)
+			if(span && span.length > 0) {
+				for(let s of span) {
+					try {
+						const xml = parser.parseFromString(s);
+						const test = xpath.select('/q/span', xml);
+						response = response + `> ${test[0].firstChild.data}\n`
+					}
+					catch(e) {
+						console.log(e);
+					}
+				}
 			}
+
+			const nospan = rsp.data.match(/<q.+>(.+)<\/q>/g)
+			if(nospan && nospan.length > 0) {
+				for(let n of nospan) {
+					try{
+						const xml = parser.parseFromString(n);
+						const test = xpath.select('/q', xml);
+						response = response + `> ${test[0].firstChild.data}\n`
+					}
+					catch(e) {
+						console.log(e)
+					}
+				}
+			}
+
+			return response.length > 0 ? response : false;
 		})
 		.catch(err => { console.log(err); return false; })
 
