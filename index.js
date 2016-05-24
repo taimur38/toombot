@@ -16,8 +16,6 @@ const rtm = new RtmClient(token, {
 
 rtm.start();
 
-// rtm.on(RTM_CLIENT_EVENTS.AUTHENTICATED, rtmStartData => { })
-
 const slackClean = message => {
 	return Object.assign({}, message, {
 		user: rtm.dataStore.getUserById(message.user),
