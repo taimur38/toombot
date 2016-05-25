@@ -5,7 +5,7 @@ module.exports = [
 	wrapper(require('./sentiment').onMessage),
 	wrapper(require('./reddit-enrichment').onMessage),
 	wrapper(require('./image-tagging').onMessage),
-	wrapper(require('./hot').onMessage),
+	// wrapper(require('./hot').onMessage),
 	wrapper(require('./wolfram').onMessage),
 	wrapper(require('./medium').onMessage),
 	wrapper(require('./genius').onMessage),
