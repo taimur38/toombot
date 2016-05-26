@@ -6,7 +6,7 @@ const parser = new dom();
 
 const onMessage = message => {
 
-	const relevant_links = message.links.filter(x => x.domain.indexOf('theverge') > -1);
+	const relevant_links = message.links.filter(x => x.domain.match(/theverge.com|recode.net/));
 
 	if(relevant_links.length == 0) {
 		return Promise.resolve(false);
