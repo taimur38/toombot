@@ -18,7 +18,7 @@ const onMessage = message => {
 	if(link.domain.startsWith("m."))
 		url = url.replace("m.", "")
 
-	if(url.match(\/.html/))
+	if(url.match(/\.html/))
 		url = url.split('?')[0]; // ignore params
 
 	return session.get(`/search.json?q=url:${url}`)
