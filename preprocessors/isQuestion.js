@@ -1,7 +1,11 @@
 const Process = message => {
 
 	return Promise.resolve(
-		{ isQuestion: (message.text.startsWith("what") || message.text.startsWith("how") || message.text.indexOf("?") >= 0) }
+		{ isQuestion: (
+			message.text.startsWith("what") ||
+			message.text.startsWith("how") ||
+			message.text.startsWith("who") ||
+			message.text.indexOf("?") >= 0) }
 	);
 
 }

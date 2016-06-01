@@ -17,7 +17,7 @@ const onMessage = message => {
 
 			let response = "";
 
-			const span = rsp.data.match(/<q .+><span>(.+)<\/q>/g)
+			const span = rsp.data.match(/<q+><span>(.+)<\/q>/g)
 			if(span && span.length > 0) {
 				for(let s of span) {
 					try {
@@ -33,7 +33,7 @@ const onMessage = message => {
 				}
 			}
 
-			const nospan = rsp.data.match(/<q.+>(.+)<\/q>/g)
+			const nospan = rsp.data.match(/<q+>(.+)<\/q>/g)
 			if(nospan && nospan.length > 0) {
 				for(let n of nospan) {
 					try{
