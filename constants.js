@@ -17,11 +17,14 @@ const tone = {
 	password: process.env.TONE_ANALYZER_PASS
 };
 
+const googleApiKey = process.env.GOOGLE_API_KEY
+
 module.exports = {
 	alchemy_key,
 	alchemy_keys,
 	conceptInsights,
 	relationshipExtraction,
 	tone,
-	geniusToken
+	geniusToken,
+	googleApiKey
 }

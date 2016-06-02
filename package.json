@@ -8,7 +8,8 @@
     "npm": "3.8.9"
   },
   "scripts": {
-    "start": "node --use_strict --harmony index.js"
+    "start": "node --use_strict --harmony index.js",
+    "debug": "nodemon --use_strict --harmony index.js"
   },
   "author": "Taimur Shah",
   "license": "ISC",
