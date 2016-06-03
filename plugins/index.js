@@ -11,5 +11,6 @@ module.exports = [
 	wrapper(require('./genius').onMessage),
 	//wrapper(require('./context-debug').onMessage)
 	wrapper(require('./verge').onMessage),
-	wrapper(require('./navigation').onMessage)
+	wrapper(require('./navigation').onMessage),
+	wrapper(require('./location').onMessage)
 ]
