@@ -3,39 +3,34 @@ const auth = require('../constants');
 
 const onMessage = message => {
 
-  let resp = /directions|navigate from (.*) to (.*)/ig.exec(message.text);
+	let resp = /directions|navigate from (.*) to (.*)/ig.exec(message.text);
 
-  if(resp && resp.length === 3) {
-    let origin = resp[1];
-    let destination = resp[2];
+	if(!resp || resp.length !== 3)
+		return Promise.resolve(false);
 
-    console.log(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURI(origin)}&destination=${encodeURI(destination)}&key=${auth.googleApiKey}`);
+	let origin = resp[1];
+	let destination = resp[2];
 
-    return axios.get(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURI(origin)}&destination=${encodeURI(destination)}&key=${auth.googleApiKey}`)
-      .then(res => {
-        if(res && res.data && res.data.routes && res.data.routes.length > 0) {
-          let temp = res.data.routes[0].legs[0];
-          let directions = `Start Address: *${temp.start_address}*\nEnd Address: *${temp.end_address}*\nDistance: *${temp.distance.text}*\nTime: *${temp.duration.text}*\n\nDirections:`;
+	console.log(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURI(origin)}&destination=${encodeURI(destination)}&key=${auth.googleApiKey}`);
 
-          for(let step of temp.steps) {
-            directions += `\n${step.html_instructions} (*${step.distance.text}*)`.split('<b>').join('*').split('</b>').join('*')
-          }
+	return axios.get(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURI(origin)}&destination=${encodeURI(destination)}&key=${auth.googleApiKey}`)
+		.then(res => {
+			if(res && res.data && res.data.routes && res.data.routes.length > 0) {
+				let temp = res.data.routes[0].legs[0];
+				let directions = `Start Address: *${temp.start_address}*\nEnd Address: *${temp.end_address}*\nDistance: *${temp.distance.text}*\nTime: *${temp.duration.text}*\n\nDirections:`;
 
-          directions += `\n\nMap: http://maps.googleapis.com/maps/api/staticmap?path=enc:${res.data.routes[0].overview_polyline.points}&size=400x400`
+				for(let step of temp.steps) {
+					directions += `\n${step.html_instructions} (*${step.distance.text}*)`.split('<b>').join('*').split('</b>').join('*')
+				}
 
-          return directions;
-        } else {
-          return false;
-        }
-      })
-      .catch(err => { console.log(err); return false; })
-  }
+				directions += `\n\nMap: http://maps.googleapis.com/maps/api/staticmap?path=enc:${res.data.routes[0].overview_polyline.points}&size=400x400`
 
-  if(message.locations && message.locations.length > 0) {
-    return Promise.resolve(`http://maps.googleapis.com/maps/api/staticmap?center=${encodeURI(message.locations[0].text)}&size=400x400`);
-  }
-
-  return Promise.resolve(false);
+				return directions;
+			} else {
+				return false;
+			}
+		})
+		.catch(err => { console.log(err); return false; })
 }
 
 module.exports = {
