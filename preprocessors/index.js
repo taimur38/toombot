@@ -5,7 +5,8 @@ const processors = [
 	require('./image-ize'),
 	require('./isQuestion'),
 	require('./links'),
-	require('./context')
+	require('./context'),
+	require('./locations')
 ];
 
 let proc_dict = {};
