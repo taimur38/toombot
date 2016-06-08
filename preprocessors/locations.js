@@ -26,13 +26,14 @@ const Process = message => {
 			});
 	}
 
-	if(message.alchemy.keywords) {
+/*	if(message.alchemy.keywords) {
 		message.alchemy.keywords
 			.filter(isLoc)
 			.forEach(keyword => {
 				temp[keyword.text.toLowerCase()] = Math.max(temp[keyword.text.toLowerCase()] || 0, keyword.relevance);
 			})
 	}
+	*/
 
   let locations = [];
 
