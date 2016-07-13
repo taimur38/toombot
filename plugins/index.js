@@ -12,5 +12,5 @@ module.exports = [
 	//wrapper(require('./context-debug').onMessage)
 	wrapper(require('./verge').onMessage),
 	wrapper(require('./navigation').onMessage),
-	wrapper(require('./location').onMessage)
+	//wrapper(require('./location').onMessage)
 ]
