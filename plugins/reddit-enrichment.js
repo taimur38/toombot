@@ -36,7 +36,7 @@ const onMessage = message => {
 
 			return false;
 		})
-		.catch(err => { console.log('hi'); console.log(err) })
+		.catch(err => console.log(err))
 
 }
 
