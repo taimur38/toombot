@@ -51,7 +51,7 @@ const processed = message_source
 
 		if(message.links) {
 			for(let i = 0; i < message.links.length; i++)
-				room.broadcast("passive.display", [{ url: message.links[i].url}] )
+				room.broadcast("passive.display", [{ url: message.links[i].url }] )
 		}
 	})
 
