@@ -30,7 +30,7 @@ const onMessage = message => {
 				return false;
 
 			for(let post of posts) {
-				if(post.data.url.indexOf('reddit.com') < 0)
+				if(post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)
 					return post.data.url;
 			}
 

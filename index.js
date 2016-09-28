@@ -4,7 +4,6 @@ const RTM_CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS.RTM;
 const MemoryDataStore = require('@slack/client').MemoryDataStore;
 const Rx = require('rx');
 
-
 const preprocessor = require('./preprocessors');
 const plugins = require('./plugins');
 
@@ -27,20 +26,17 @@ const slackClean = message => {
 	})
 }
 
-const message_source = Rx.Observable.create(observer => {
-	rtm.on(RTM_EVENTS.MESSAGE, message => observer.onNext(message));
-});
+const message_source = Rx.Observable.fromEvent(rtm, RTM_EVENTS.MESSAGE)
 
 const processed = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
 	.map(slackClean)
 	.filter(message => message.user.name != 'toombot')
-	.flatMap(message => Rx.Observable.fromPromise(preprocessor(message)))
-	.map(x => { console.log(x); return x; })
+	.flatMap(message => preprocessor(message))
+	.tap(console.log)
 
-
-processed.flatMap(message => Rx.Observable.fromPromise(Promise.all(plugins.map(p => p(message)))))
-	.flatMap(r => { console.log(r); return r; })
+processed.flatMap(message => Promise.all(plugins.map(p => p(message))))
+	.flatMap(r => { console.log(r); return r; }) // flattens array
 	.filter(r => r && r.content)
 	.subscribe(r => {
 		rtm.sendMessage(r.content, r.channel)
