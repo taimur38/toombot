@@ -11,7 +11,7 @@ const onMessage = message => {
 	if(!message.isQuestion)
 		return Promise.resolve(false);
 
-	console.log(message.context_correcttion, message.text);
+	console.log(message.context_correction, message.text);
 
 	const query = message.context_correction || message.text;
 	return axios.get(`http://api.wolframalpha.com/v2/query?appid=${appid}&input=${query}&format=plaintext`)
