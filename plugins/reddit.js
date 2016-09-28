@@ -67,9 +67,11 @@ const getComments = permalink => session.get(`${permalink}.json`)
 					isDiscussed: 0, // something with replies
 					isSummary: c.body.indexOf("tl;dr") > -1 || c.body.indexOf("tldr") > -1 || c.body.indexOf("summary") > -1 || c.body_html.indexOf("blockquote") > -1,
 					isMedia: c.body.indexOf("http") > -1,
+					isBot: c.body.match(/\b(bot|robot)\b/g) != null,
 					isGilded: c.gilded > 0,
 					score: c.score
 				}))
+				.filter(c => !c.isBot)
 				.map(c => ({
 					text: c.text,
 					score: 2000 * c.isSummary + 200 * c.isMedia + 200 * c.isGilded + 100 * c.isLong + c.score
