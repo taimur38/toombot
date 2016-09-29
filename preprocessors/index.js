@@ -1,7 +1,7 @@
 const processors = [
 	require('./alchemize'),
 	require('./temperature'),
-	require('./tonalize'),
+	//require('./tonalize'),
 	require('./image-ize'),
 	require('./isQuestion'),
 	require('./links'),
