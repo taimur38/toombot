@@ -30,7 +30,7 @@ const processed = message_source
 	.map(slackClean)
 	.filter(message => message.user.name != 'toombot')
 	.flatMap(preprocess)
-	.tap(result => console.log(result.alchemy.dates))
+	.tap(console.log)
 
 processed.flatMap(message => Promise.all(plugins.map(p => p(message))))
 	.flatMap(r => { /*console.log(r);*/ return r; }) // flattens array
