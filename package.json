@@ -17,8 +17,10 @@
     "@slack/client": "^3.1.0",
     "axios": "^0.11.0",
     "moment": "^2.15.1",
+    "neo4j-driver": "^1.0.4",
     "rx": "^4.1.0",
     "simple-oauth2": "^0.7.0",
+    "uuid": "^2.0.3",
     "xmldom": "^0.1.22",
     "xpath": "0.0.23"
   }

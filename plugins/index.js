@@ -9,6 +9,7 @@ module.exports = [
 	wrapper(require('./genius').onMessage),
 	wrapper(require('./verge').onMessage),
 	wrapper(require('./navigation').onMessage),
+	wrapper(require('./graph').onMessage)
 	// wrapper(require('./hot').onMessage),
 	//wrapper(require('./context-debug').onMessage)
 //	wrapper(require('./sentiment').onMessage),

@@ -1,5 +1,6 @@
 const { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } = require('@slack/client');
 const Rx = require('rx');
+const uuid = require('uuid')
 
 const preprocess = require('./preprocessors');
 const plugins = require('./plugins');
@@ -19,7 +20,8 @@ const slackClean = message => {
 		channel:
 			rtm.dataStore.getChannelById(message.channel) ||
 			rtm.dataStore.getGroupById(message.channel) ||
-			rtm.dataStore.getDMById(message.channel)
+			rtm.dataStore.getDMById(message.channel),
+		id: uuid.v1()
 	})
 }
 
