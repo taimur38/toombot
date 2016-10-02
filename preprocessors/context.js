@@ -11,7 +11,7 @@ const Process = message => {
 	let prev_subject = contexts[message.channel.id] || {};
 
 	// only care about 'recent' subjects
-	if(message.ts - (prev_subject.ts || 0) > subj_thresh)
+	if(message.timestamp - (prev_subject.timestamp || 0) > subj_thresh)
 		prev_subject = {};
 
 	let relation = {};
@@ -40,7 +40,7 @@ const Process = message => {
 	if(!relation.subject)
 		return Promise.resolve({ [key]: undefined });
 
-	contexts[message.channel.id] = { text: relation.subject.text, ts: message.ts };
+	contexts[message.channel.id] = { text: relation.subject.text, timestamp: message.timestamp };
 	return Promise.resolve({ [key]: undefined });
 }
 

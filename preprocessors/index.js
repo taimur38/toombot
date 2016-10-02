@@ -1,12 +1,21 @@
+import alchemize from './alchemize'
+import temperature from './temperature'
+import imageize from './image-ize'
+import isQuestion from './isQuestion'
+import context from './context'
+import locations from './locations'
+import * as links from './links'
+import * as linkMeta from './link-meta';
+
 const processors = [
-	require('./alchemize'),
-	require('./temperature'),
-	//require('./tonalize'),
-	require('./image-ize'),
-	require('./isQuestion'),
-	require('./links'),
-	require('./context'),
-	require('./locations')
+	alchemize,
+	temperature,
+	imageize,
+	isQuestion,
+	links,
+	context,
+	locations,
+	linkMeta
 ];
 
 let proc_dict = {};
@@ -62,8 +71,8 @@ const Process = raw_message => {
 	let running_promise = Promise.resolve(raw_message);
 	for(let procs of scheduled_procs) {
 		running_promise = running_promise
-			.then(message => Promise.all( procs.map(p => p(message).then(res => Object.assign({}, message, res)) )))
-			.then(results => results.reduce( (p, c) => Object.assign({}, p, c)) )
+			.then(message => Promise.all( procs.map(p => p(message).then(res => ({...message, ...res}) ))))
+			.then(results => results.reduce( (p, c) => ({...p, ...c }) ))
 	}
 
 	return running_promise;

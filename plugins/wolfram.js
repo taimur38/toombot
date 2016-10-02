@@ -2,7 +2,7 @@ const axios = require('axios');
 const dom = require('xmldom').DOMParser;
 const xpath = require('xpath');
 
-const appid = "655RV9-JT89GATJ38";
+const appid = require('../constants').wolframAppID;
 
 const parser = new dom();
 

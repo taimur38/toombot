@@ -1,4 +1,4 @@
-FROM node:6.2
+FROM node
 
 run mkdir -p /code
 

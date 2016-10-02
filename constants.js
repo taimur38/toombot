@@ -19,6 +19,8 @@ const tone = {
 
 const googleApiKey = process.env.GOOGLE_API_KEY
 
+const wolframAppID = process.env.WOLFRAM_APP_ID
+
 module.exports = {
 	alchemy_key,
 	alchemy_keys,
@@ -26,5 +28,6 @@ module.exports = {
 	relationshipExtraction,
 	tone,
 	geniusToken,
-	googleApiKey
+	googleApiKey,
+	wolframAppID
 }

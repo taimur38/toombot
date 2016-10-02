@@ -1,5 +1,5 @@
 const neo4j = require('neo4j-driver').v1;
-const driver = neo4j.driver("bolt://metal.fish", neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
+const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
 const onMessage = message => {
 	const session = driver.session();
@@ -35,6 +35,9 @@ const onMessage = message => {
 		c_name: message.channel.name
 	})
 	.then(res => console.log(res))
+	.then(() => {
+		
+	})
 	.catch(err => {
 		console.error('errrr', err)
 	})

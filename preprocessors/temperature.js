@@ -23,7 +23,7 @@ const Process = message => {
 	rooms[message.channel] = [
 		...prev,
 		message,
-	].filter(messages => curr - messages.ts < max_history);
+	].filter(messages => curr - messages.timestamp < max_history);
 
 	let people = rooms[message.channel].map(m => m.user.name);
 	people = people.filter((p, i) => people.indexOf(p) == i);
