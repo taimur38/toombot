@@ -6,7 +6,7 @@ const onMessage = message => {
 
 	session.run(`
 		MERGE (u:User {id: {u_id} })
-		ON CREATE SET
+		SET
 			u.name = {u_name},
 			u.email = {u_email},
 			u.image = {u_image}
