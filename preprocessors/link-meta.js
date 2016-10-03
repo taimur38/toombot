@@ -19,20 +19,25 @@ export async function Process(message) {
 	let link_metas = [];
 
 	for(let i = 0; i < message.links.length; i++) {
-		const link = message.links[i];
+		try {
 
-		const res = await axios.get(link.url);
-		const xml = parser.parseFromString(res.data);
-		const ogtags = xpath.select('//meta[contains(@property, "og:")]', xml)
-		const formatted = ogtags.map(tag => ({
-			tag: tag.attributes[0].value,
-			value: tag.attributes[1].value
-		}))
+			const link = message.links[i];
 
-		link_metas.push({
-			link,
-			meta: formatted
-		})
+			const res = await axios.get(link.url);
+			const xml = parser.parseFromString(res.data);
+			const ogtags = xpath.select('//meta[contains(@property, "og:")]', xml)
+			const formatted = ogtags.map(tag => ({
+				type: tag.attributes[0].value,
+				label: tag.attributes[1].value
+			}))
+
+			link_metas.push({
+				link,
+				meta: formatted
+			})
+		} catch(e) {
+			console.log(e)
+		}
 	}
 
 	return {

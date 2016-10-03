@@ -17,7 +17,7 @@ const slackClean = message => {
 	return {
 		...message,
 		user: rtm.dataStore.getUserById(message.user),
-		timestamp: new Date(parseFloat(message.timestamp) * 1000),
+		timestamp: new Date(parseFloat(message.ts) * 1000),
 		channel:
 			rtm.dataStore.getChannelById(message.channel) ||
 			rtm.dataStore.getGroupById(message.channel) ||
@@ -49,4 +49,8 @@ processed.flatMap(message => Promise.all(plugins.map(p => p(message))))
 	.filter(r => r && r.content)
 	.subscribe(r => {
 		rtm.sendMessage(r.content, r.channel)
+	}, err => {
+		console.log(err)
+	}, () => {
+		console.log('completed')
 	})

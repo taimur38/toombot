@@ -13,7 +13,8 @@ const onMessage = message => {
 
 		MERGE (m:Message {id: {m_id} })
 		ON CREATE SET
-			m.text = {m_text}
+			m.text = {m_text},
+			m.timestamp = {m_timestamp}
 
 		MERGE (u)-[r:SENT_MESSAGE]->(m)
 
@@ -25,18 +26,54 @@ const onMessage = message => {
 	`, {
 		u_id: message.user.id,
 		u_name: message.user.name,
-		u_email: message.user.profile.email,
+		u_email: message.user.profile.email || '',
 		u_image: message.user.profile.image_original || message.user.profile.image_512,
 
 		m_id: message.id,
 		m_text: message.text,
+		m_timestamp: message.timestamp.getTime() / 1000,
 
 		c_id: message.channel.id,
 		c_name: message.channel.name
 	})
 	.then(res => console.log(res))
 	.then(() => {
-		
+		if(message.links.length == 0)
+			return;
+		const tx = session.beginTransaction();
+
+		for(let link of message.links) {
+			tx.run(`
+				MERGE (m:Message {id: {m_id} })
+				MERGE (l:Link {id: {l_url}})
+				MERGE (m)-[r:CONTAINS_LINK]->(l)
+			`, {
+				m_id: message.id,
+				l_url: link.url
+			})
+		}
+
+		for(let link_meta of message.link_meta) {
+			console.log(link_meta.link.url)
+			for(let tag of link_meta.meta) {
+				tx.run(`
+					MERGE (l:Link {id: {l_id} })
+					MERGE (t:Tag {id: {t_id}})
+					ON CREATE SET
+						t.label = {t_label},
+						t.type = {t_type}
+
+					MERGE (l)-[r:HAS_TAG]->(t)
+				`, {
+					l_id: link_meta.link.url,
+					t_id: tag.type + '-' + tag.label,
+					t_label: tag.label,
+					t_type: tag.type
+				}).catch(err => console.log(err))
+			}
+		}
+
+		return tx.commit()
 	})
 	.catch(err => {
 		console.error('errrr', err)
