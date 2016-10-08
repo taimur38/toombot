@@ -34,9 +34,8 @@ const onMessage = message => {
 		m_timestamp: message.timestamp.getTime() / 1000,
 
 		c_id: message.channel.id,
-		c_name: message.channel.name
+		c_name: message.channel.name || ''
 	})
-	.then(res => console.log(res))
 	.then(() => {
 		if(message.links.length == 0)
 			return;
