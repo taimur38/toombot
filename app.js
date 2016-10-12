@@ -39,18 +39,15 @@ rtm.on(RTM_EVENTS.DISCONNECT, err => {
 const reaction_added = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_ADDED)
 const reaction_removed = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_REMOVED)
 
-reaction_added.subscribe(msg => {
-	//console.log(slackClean(msg))
-	console.log(msg)
-	/*const session = driver.session();
-	session.run(`MATCH (m:Message {timestamp: ${msg.item.ts}})`)
-	*/
-})
+reaction_added
+	.map(slackClean)
+	.subscribe(msg => { graph.reaction(msg); }, err => console.error('reaction error', err))
 
 const message_source = Rx.Observable.fromEvent(rtm, RTM_EVENTS.MESSAGE)
 
 const processed = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
+	.tap(message => console.log(message.text))
 	.map(slackClean)
 	.flatMap(preprocess)
 	.tap(message => graph.message(message))
