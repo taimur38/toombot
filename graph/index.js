@@ -91,16 +91,18 @@ const onMessage = message => {
 
 const onReaction = reaction => {
 	const session = driver.session();
+	console.log(reaction.user.name, reaction.item.ts, reaction.reaction, reaction.event_ts);
 	session.run(`
 		MATCH (u:User {id: {u_id}})
 		MATCH (m:Message {timestamp: m_ts})
-		MERGE (u)-[r:REACTED { type: {r_type} }]->(m)
+		MERGE (u)-[r:REACTED { type: {r_type}, timestamp: {r_ts} }]->(m)
 	`, {
 		u_id: reaction.user.name,
 		m_ts: reaction.item.ts,
-		r_type: reaction.reaction
+		r_type: reaction.reaction,
+		r_ts: reaction.event_ts
 	})
-	.then(res => console.log(`saved reaction from ${reaction.user.namel}`))
+	.then(res => console.log(`saved reaction from ${reaction.user.name}`))
 	.catch(err => console.error('reaction save error', err))
 	.then(() => session.close())
 }
