@@ -94,10 +94,10 @@ const onReaction = reaction => {
 	console.log(reaction.user.name, reaction.item.ts, reaction.reaction, reaction.event_ts);
 	session.run(`
 		MATCH (u:User {id: {u_id}})
-		MATCH (m:Message {timestamp: m_ts})
+		MATCH (m:Message { timestamp: {m_ts} })
 		MERGE (u)-[r:REACTED { type: {r_type}, timestamp: {r_ts} }]->(m)
 	`, {
-		u_id: reaction.user.name,
+		u_id: reaction.user.id,
 		m_ts: reaction.item.ts,
 		r_type: reaction.reaction,
 		r_ts: reaction.event_ts
