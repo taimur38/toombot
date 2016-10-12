@@ -63,7 +63,7 @@ const getComments = permalink => session.get(`${permalink}.json`)
 				.filter(c => c.body.indexOf("[deleted]") == -1)
 				.map(c => ({
 					text: c.body,
-					isLong: c.body.split(' ').length > 30,
+					isLong: c.body.split(' ').length > 50,
 					isDiscussed: 0, // something with replies
 					isSummary: c.body.indexOf("tl;dr") > -1 || c.body.indexOf("tldr") > -1 || c.body.indexOf("summary") > -1 || c.body_html.indexOf("blockquote") > -1,
 					isMedia: c.body.indexOf("http") > -1,
@@ -71,14 +71,14 @@ const getComments = permalink => session.get(`${permalink}.json`)
 					isGilded: c.gilded > 0,
 					score: c.score
 				}))
-				.filter(c => !c.isBot)
+				.filter(c => !c.isBot && !c.isLong)
 				.map(c => ({
 					text: c.text,
-					score: 2000 * c.isSummary + 200 * c.isMedia + 200 * c.isGilded + 100 * c.isLong + c.score
+					score: 2000 * c.isSummary + 200 * c.isMedia + 200 * c.isGilded + c.score
 				}))
 				.sort((a, b) => b.score - a.score)
 
-			console.log(scored)
+			//console.log(scored)
 
 			return scored[0].text;
 		})

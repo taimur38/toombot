@@ -4,6 +4,7 @@ import uuid from 'uuid'
 
 import preprocess from './preprocessors';
 import plugins from './plugins';
+import graph from './graph';
 
 const token = process.env.SLACK_TOKEN;
 
@@ -35,22 +36,44 @@ rtm.on(RTM_EVENTS.DISCONNECT, err => {
 	}, 3000);
 })
 
+const reaction_added = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_ADDED)
+const reaction_removed = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_REMOVED)
+
+reaction_added.subscribe(msg => {
+	//console.log(slackClean(msg))
+	console.log(msg)
+	/*const session = driver.session();
+	session.run(`MATCH (m:Message {timestamp: ${msg.item.ts}})`)
+	*/
+})
+
 const message_source = Rx.Observable.fromEvent(rtm, RTM_EVENTS.MESSAGE)
 
 const processed = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
 	.map(slackClean)
-	.filter(message => message.user.name != 'toombot')
 	.flatMap(preprocess)
-	.tap(console.log)
+	.tap(message => graph.message(message))
 
-processed.flatMap(message => Promise.all(plugins.map(p => p(message))))
+const output = processed
+	.filter(message => message.user.name != 'toombot')
+	.flatMap(message => Promise.all(plugins.map(p => p(message))))
 	.flatMap(r => { /*console.log(r);*/ return r; }) // flattens array
 	.filter(r => r && r.content)
-	.subscribe(r => {
-		rtm.sendMessage(r.content, r.channel)
-	}, err => {
-		console.log(err)
-	}, () => {
-		console.log('completed')
+	.flatMap(r => {
+		return new Promise((resolve, reject) => {
+			rtm.sendMessage(r.content, r.channel, (err, msg) => {
+				if(err) {
+					return reject(err)
+				}
+				resolve(msg)
+			})
+		})
 	})
+	.tap(msg => console.log('output', msg))
+
+output
+	.map(slackClean)
+	.flatMap(preprocess)
+	.tap(graph.message)
+	.subscribe(msg => {}, err => console.error('erorororor', err), () => console.log('completed'))

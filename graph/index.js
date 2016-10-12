@@ -31,12 +31,12 @@ const onMessage = message => {
 
 		m_id: message.id,
 		m_text: message.text,
-		m_timestamp: message.timestamp.getTime() / 1000,
+		m_timestamp: message.ts,
 
 		c_id: message.channel.id,
 		c_name: message.channel.name || ''
 	})
-	.then(() => {
+	.then(res => {
 		if(message.links.length == 0)
 			return;
 		const tx = session.beginTransaction();
@@ -89,6 +89,23 @@ const onMessage = message => {
 	return Promise.resolve(false)
 }
 
-module.exports = {
-	onMessage
+const onReaction = reaction => {
+	const session = driver.session();
+	session.run(`
+		MATCH (u:User {id: {u_id}})
+		MATCH (m:Message {timestamp: m_ts})
+		MERGE (u)-[r:REACTED { type: {r_type} }]->(m)
+	`, {
+		u_id: reaction.user.name,
+		m_ts: reaction.item.ts,
+		r_type: reaction.reaction
+	})
+	.then(res => console.log(`saved reaction from ${reaction.user.namel}`))
+	.catch(err => console.error('reaction save error', err))
+	.then(() => session.close())
 }
+
+module.exports = {
+	message: onMessage,
+	reaction: onReaction
+};
