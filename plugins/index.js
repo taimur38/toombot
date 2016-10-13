@@ -8,7 +8,8 @@ module.exports = [
 	wrapper(require('./genius').onMessage),
 	wrapper(require('./verge').onMessage),
 	wrapper(require('./navigation').onMessage),
-	wrapper(require('./arpan-fader').onMessage)
+	wrapper(require('./arpan-fader').onMessage),
+	wrapper(require('./update-nlc').onMessage)
 	//wrapper(require('./image-tagging').onMessage),
 	//wrapper(require('./hot').onMessage),
 	//wrapper(require('./context-debug').onMessage)
