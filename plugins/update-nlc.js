@@ -5,10 +5,9 @@ const nlc = require('../lib/nlc')
 
 const onMessage = message => {
 
-	message.
 	const match = message.text.match(/update|training/gi)
 
-	if(!match || match.length < 3)
+	if(message.user.name != 'taimur' || !match || match.length < 2)
 		return Promise.resolve(false);
 
 	const session = driver.session();
@@ -28,16 +27,15 @@ const onMessage = message => {
 		const cmap = new Map();
 
 		reactions.forEach(({ comment, reaction, count}) => {
-			const modifier = reaction.test(/\+1/g) ? 1 : -1;
+			const modifier = reaction.match(/-1/g) == undefined ? 1 : -1;
 			cmap.set(comment, (cmap.get(comment) || 0) + modifier * count);
 		})
 
-		console.log(cmap);
-
 		let formatted = []; // { classes: ['good', 'bad'], text: ''}
 		cmap.forEach((count, comment) => {
+			console.log(comment, count)
 			if(count == 0)
-				continue;
+				return
 
 			const cls = count > 0 ? 'good' : 'bad';
 			formatted.push({ classes: [cls], text: comment })
