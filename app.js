@@ -41,7 +41,11 @@ const reaction_removed = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_REMOVE
 
 reaction_added
 	.map(slackClean)
-	.subscribe(msg => { graph.reaction(msg); }, err => console.error('reaction error', err))
+	.subscribe(msg => { graph.reaction.add(msg); }, err => console.error('reaction error', err))
+
+reaction_removed
+	.map(slackClean)
+	.subscribe(msg => { graph.reaction.remove(msg); }, err => console.error('reaction error', err))
 
 const message_source = Rx.Observable.fromEvent(rtm, RTM_EVENTS.MESSAGE)
 
