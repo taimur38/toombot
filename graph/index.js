@@ -78,15 +78,6 @@ const onMessage = message => {
 		console.error('errrr', err)
 	})
 	.then(() => session.close())
-
-	/*.then(res => session.run(`
-		MATCH (m:Message {id: {m_id} })
-
-		MERGE (c:AlchemyConcept {id: {c_id}})
-
-	`)) //TODO: toombotize message */
-
-	return Promise.resolve(false)
 }
 
 module.exports = {

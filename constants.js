@@ -21,6 +21,11 @@ const googleApiKey = process.env.GOOGLE_API_KEY
 
 const wolframAppID = process.env.WOLFRAM_APP_ID
 
+const NLC = {
+	username: process.env.NLC_USER,
+	password: process.env.NLC_PASS
+}
+
 module.exports = {
 	alchemy_key,
 	alchemy_keys,
@@ -29,5 +34,6 @@ module.exports = {
 	tone,
 	geniusToken,
 	googleApiKey,
-	wolframAppID
+	wolframAppID,
+	NLC
 }
