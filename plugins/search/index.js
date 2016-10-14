@@ -16,6 +16,9 @@ const onMessage = message => {
 		return Promise.resolve(false);
 	}
 
+	if(message.text.split(' ').length < 10)
+		return Promise.resolve(false)
+
 	let context = {
 		concepts: [],
 		entities: [],
@@ -38,13 +41,13 @@ const onMessage = message => {
 		}
 	})
 
-	return Promise.all(searchers.map(searcher => searcher.search(message)))
+	return Promise.all(searchers.map(searcher => searcher.search(msg)))
 		.then(engine_results                  => engine_results.filter(res => res && res.length > 0))
 		.then(engine_results                  => flatten(engine_results))
 		.then(flattened_results               => Promise.all(flattened_results.map(analyze)))
-		.then(analyzed_results                => rank(analyzed_results, message, passiveSettings))
+		.then(analyzed_results                => rank(analyzed_results, msg, thresholds))
 		.then(ranked                          => ranked[0])
-		.then(winner                          => winner == undefined ? false : { url: winner.url })
+		.then(winner                          => winner == undefined ? false : winner.url)
 		.catch(err => console.log(err))
 }
 
@@ -56,6 +59,15 @@ const analyze = search_result => {
 
 	return alchemy.getAllTheThings(search_result.url, 'url')
 		.then(alchemized => Object.assign({}, search_result, { alchemized }))
+		.catch(err => Object.assign({}, search_result, {
+			alchemized: {
+				concepts: [],
+				keywords: [],
+				entities: [],
+				taxonomy: [],
+				imageKeywords: []
+			}
+		}))
 }
 
 const flatten = engine_results => {
@@ -76,29 +88,19 @@ const flatten = engine_results => {
 				{ concepts, entities, keywords, taxonomy, emotions, relations, sentiment, imageKeywords, dates}
 		}]
 */
-const rank = (analyzed_results, original_message, passiveSettings ) => {
+const rank = (analyzed_results, original_message, thresholds) => {
 
 	let context = {
 		concepts: [],
 		entities: []
 	};
 
-    console.log(passiveSettings);
-    const thresholds = passiveSettings.thresholds;
-
 	if(original_message.context) {
 		console.log("CONTEXT-PREFILTER", original_message.context.concepts)
 		console.log("CONTEXT", context.concepts)
 	}
 
-	const concepts = original_message.alchemy.concepts
-		.filter((c) => parseFloat(c.relevance) > thresholds.concepts)
-
-	const entities = original_message.alchemy.entities
-		.filter((c) => parseFloat(c.relevance) > thresholds.entities || (c.type == 'Person' && parseFloat(c.relevance) > thresholds.entities - 0.1))
-
-	const keywords = original_message.alchemy.keywords
-		.filter((c) => parseFloat(c.relevance) > thresholds.keywords)
+	const { concepts, keywords, entities } = original_message.alchemy;
 
 	return analyzed_results
 		.map(res => {

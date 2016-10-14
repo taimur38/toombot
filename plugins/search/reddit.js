@@ -14,13 +14,15 @@ const reddit_session = axios.create({
 
 const search = (message) => {
 
+	console.log('hi')
 	const context = message.context;
+	console.log(message)
 
 	const concept_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords]
 		.map(thing => `(${thing.text})`)
 		.join(' AND ');
 
-	const contextualized_merge = [...entities, ...concepts, ...keywords, ...message.context.entities, ...message.context.concepts]
+	const contextualized_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords, ...message.context.entities, ...message.context.concepts]
 		.map(thing => `(${thing.text})`)
 		.join(' AND ')
 
@@ -50,7 +52,7 @@ const search = (message) => {
 				.sort((a, b) => b.score - a.score)
 				.slice(0,10);
 		})
-		.catch(err => console.log('reddit error'))
+		.catch(err => console.log('reddit error', err))
 }
 
 module.exports = {
