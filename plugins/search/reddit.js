@@ -12,30 +12,19 @@ const reddit_session = axios.create({
 	timeout: 3000
 })
 
-const search = (message, { thresholds }) => {
-
-	if(!message.alchemy)
-		return Promise.resolve(false);
+const search = (message) => {
 
 	const context = message.context;
 
-	const concepts = message.alchemy.concepts
-		.filter((c) => parseFloat(c.relevance) > thresholds.concepts)
-		.filter(c => c.text != 'yeah'); // TODO: global filter
-	const entities = message.alchemy.entities
-		.filter((c) => parseFloat(c.relevance) > thresholds.entities || (c.type == 'Person' && parseFloat(c.relevance) > thresholds.entities - 0.1))
-		.filter(c => c.text != 'yeah');
-	const keywords = message.alchemy.keywords
-		.filter((c) => parseFloat(c.relevance) > thresholds.keywords)
-		.filter(c => c.text != 'yeah');
+	const concept_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords]
+		.map(thing => `(${thing.text})`)
+		.join(' AND ');
 
-	const concept_merge = [...entities, ...concepts, ...keywords].reduce((all, c) => `${all} ${c.text}`, '');
-
-	const contextualized_merge = [...entities, ...concepts, ...keywords, ...context.entities, ...context.concepts]
+	const contextualized_merge = [...entities, ...concepts, ...keywords, ...message.context.entities, ...message.context.concepts]
 		.map(thing => `(${thing.text})`)
 		.join(' AND ')
 
-	if(!concept_merge)
+	if(concept_merge == '')
 		return Promise.resolve(false);
 
 	const searchUrl = `/search.json?q=${contextualized_merge}+nsfw:no+self:no`

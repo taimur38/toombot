@@ -30,14 +30,12 @@ const onMessage = message => {
 			concepts: message.context.concepts.filter((c) => parseFloat(c.relevance) > thresholds.concepts),
 			entities: message.context.entities.filter((c) => parseFloat(c.relevance) > thresholds.entities)
 		},
-
 		alchemy: {
 			concepts: message.alchemy.concepts.filter((c) => parseFloat(c.relevance) > thresholds.concepts),
 			entities: message.alchemy.entities.filter((c) => parseFloat(c.relevance) > thresholds.entities),
 			keywords: message.alchemy.keywords.filter((c) => parseFloat(c.relevance) > thresholds.keywords),
 			taxonomy: message.alchemy.taxonomy.filter((c) => parseFloat(c.relevance) > thresholds.taxonomy)
 		}
-
 	})
 
 	return Promise.all(searchers.map(searcher => searcher.search(message)))
@@ -50,14 +48,13 @@ const onMessage = message => {
 		.catch(err => console.log(err))
 }
 
-
 const analyze = search_result => {
 	// dont re-analyzed if it was already done
 	if(search_result.alchemized) {
 		return Promise.resolve(search_result);
 	}
 
-	return alchemy.getAllTheThings(search_result.url)
+	return alchemy.getAllTheThings(search_result.url, 'url')
 		.then(alchemized => Object.assign({}, search_result, { alchemized }))
 }
 
