@@ -14,17 +14,23 @@ const reddit_session = axios.create({
 
 const search = (message) => {
 
-	console.log('hi')
 	const context = message.context;
 	console.log(message)
 
 	const concept_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords]
-		.map(thing => `(${thing.text})`)
-		.join(' AND ');
+		.reduce((agg, curr) => agg.indexOf(curr.text) > -1 ? agg : agg + " AND " + curr, '')
 
 	const contextualized_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords, ...message.context.entities, ...message.context.concepts]
-		.map(thing => `(${thing.text})`)
-		.join(' AND ')
+		.reduce((agg, curr) => {
+			if(agg == '') {
+				return curr.text;
+			}
+
+			if(agg.indexOf(curr.text) > -1)
+				return agg
+
+			return agg + " AND " + curr.text
+		}, '')
 
 	if(concept_merge == '')
 		return Promise.resolve(false);
@@ -45,6 +51,7 @@ const search = (message) => {
 			return posts
 				.filter(post => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)
 				.map(post => ({
+					message: post.data.title + ': ' + post.data.url,
 					url: post.data.url,
 					source: searchUrl,
 					score: post.data.score // TODO: fill this out. currently just the reddit score - different search might have a score derived from how recent it is, how many responses it gets, whatever.

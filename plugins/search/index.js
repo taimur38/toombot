@@ -7,7 +7,7 @@ const searchers = [
 const thresholds = {
 	concepts: 0.9,
 	entities: 0.8,
-	keywords: 0.7
+	keywords: 0.9
 };
 
 const onMessage = message => {
@@ -16,7 +16,7 @@ const onMessage = message => {
 		return Promise.resolve(false);
 	}
 
-	if(message.text.split(' ').length < 10)
+	if(message.text.split(' ').length < 15)
 		return Promise.resolve(false)
 
 	let context = {
@@ -41,13 +41,18 @@ const onMessage = message => {
 		}
 	})
 
+	const merged = [...msg.context.concepts, ...msg.context.entities, ...msg.alchemy.concepts, ...msg.alchemy.entities, ...msg.alchemy.keywords];
+
+	if(merged.length < 4)
+		return Promise.resolve(false);
+
 	return Promise.all(searchers.map(searcher => searcher.search(msg)))
 		.then(engine_results                  => engine_results.filter(res => res && res.length > 0))
 		.then(engine_results                  => flatten(engine_results))
 		.then(flattened_results               => Promise.all(flattened_results.map(analyze)))
 		.then(analyzed_results                => rank(analyzed_results, msg, thresholds))
 		.then(ranked                          => ranked[0])
-		.then(winner                          => winner == undefined ? false : winner.url)
+		.then(winner                          => winner == undefined ? false : winner.message)
 		.catch(err => console.log(err))
 }
 
@@ -94,11 +99,6 @@ const rank = (analyzed_results, original_message, thresholds) => {
 		concepts: [],
 		entities: []
 	};
-
-	if(original_message.context) {
-		console.log("CONTEXT-PREFILTER", original_message.context.concepts)
-		console.log("CONTEXT", context.concepts)
-	}
 
 	const { concepts, keywords, entities } = original_message.alchemy;
 

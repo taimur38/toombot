@@ -1,4 +1,4 @@
-const wrapper = fn => message => fn(message).then(res => ({ content: res, channel: message.channel.id }))
+const wrapper = fn => message => fn(message).then(res => ({ response: res, message }))
 
 module.exports = [
 	wrapper(require('./reddit').onMessage),

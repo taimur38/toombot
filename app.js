@@ -60,10 +60,12 @@ const output = processed
 	.filter(message => message.user.name != 'toombot')
 	.flatMap(message => Promise.all(plugins.map(p => p(message))))
 	.flatMap(r => { /*console.log(r);*/ return r; }) // flattens array
-	.filter(r => r && r.content)
+	.filter(r => r && r.response)
+	.flatMap(r => graph.isRepost(r).then(isRepost => isRepost ? false : r ))
+	.filter(r => r)
 	.flatMap(r => {
 		return new Promise((resolve, reject) => {
-			rtm.sendMessage(r.content, r.channel, (err, msg) => {
+			rtm.sendMessage(r.response, r.message.channel.id, (err, msg) => {
 				if(err) {
 					return reject(err)
 				}

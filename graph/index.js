@@ -82,5 +82,6 @@ const onMessage = message => {
 
 module.exports = {
 	message: onMessage,
-	reaction: require('./reaction')
+	reaction: require('./reaction'),
+	isRepost: require('./repost')
 };
