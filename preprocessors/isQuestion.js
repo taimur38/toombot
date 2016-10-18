@@ -6,11 +6,10 @@ const Process = message => {
 				message.text.startsWith("what") ||
 				message.text.startsWith("how") ||
 				message.text.startsWith("who") ||
-				message.text.indexOf("?") >= 0)
+				message.text.indexOf("?") >= 0
 			)
-		})
-	);
-
+		)
+	});
 }
 
 module.exports = {
