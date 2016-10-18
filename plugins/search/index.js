@@ -62,7 +62,7 @@ const analyze = search_result => {
 		return Promise.resolve(search_result);
 	}
 
-	return alchemy.getAllTheThings(search_result.url, 'url')
+	return alchemy.getAllTheThings(search_result.url, 'url', true, 5000)
 		.then(alchemized => Object.assign({}, search_result, { alchemized }))
 		.catch(err => Object.assign({}, search_result, {
 			alchemized: {
