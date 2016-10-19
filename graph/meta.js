@@ -46,7 +46,7 @@ const companize = message => {
 		}).catch(err => console.error(err))
 	}
 
-	return tx.commit().then(res => console.log(res));
+	return tx.commit();
 }
 
 const linkize = message => {
