@@ -6,6 +6,7 @@ import context from './context'
 import locations from './locations'
 import * as links from './links'
 import * as linkMeta from './link-meta';
+import companies from './companies';
 
 const processors = [
 	alchemize,
@@ -15,7 +16,8 @@ const processors = [
 	links,
 	context,
 	locations,
-	linkMeta
+	linkMeta,
+	companies
 ];
 
 let proc_dict = {};

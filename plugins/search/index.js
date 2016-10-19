@@ -12,7 +12,7 @@ const thresholds = {
 
 const onMessage = message => {
 
-	if(!message.alchemy) {
+	if(!message.alchemy || message.links.length > 0) {
 		return Promise.resolve(false);
 	}
 
@@ -53,7 +53,7 @@ const onMessage = message => {
 		.then(analyzed_results                => rank(analyzed_results, msg, thresholds))
 		.then(ranked                          => ranked[0])
 		.then(winner                          => winner == undefined ? false : winner.message)
-		.catch(err => console.log(err))
+		.catch(err                            => console.error('search error', err))
 }
 
 const analyze = search_result => {

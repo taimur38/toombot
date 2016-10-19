@@ -1,6 +1,8 @@
 const neo4j = require('neo4j-driver').v1;
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
+const meta = require('./meta');
+
 const onMessage = message => {
 	const session = driver.session();
 
@@ -36,44 +38,7 @@ const onMessage = message => {
 		c_id: message.channel.id,
 		c_name: message.channel.name || ''
 	})
-	.then(res => {
-		if(message.links.length == 0)
-			return;
-		const tx = session.beginTransaction();
-
-		for(let link of message.links) {
-			tx.run(`
-				MERGE (m:Message {id: {m_id} })
-				MERGE (l:Link {id: {l_url}})
-				MERGE (m)-[r:CONTAINS_LINK]->(l)
-			`, {
-				m_id: message.id,
-				l_url: link.url
-			})
-		}
-
-		for(let link_meta of message.link_meta) {
-			console.log(link_meta.link.url)
-			for(let tag of link_meta.meta) {
-				tx.run(`
-					MERGE (l:Link {id: {l_id} })
-					MERGE (t:Tag {id: {t_id}})
-					ON CREATE SET
-						t.label = {t_label},
-						t.type = {t_type}
-
-					MERGE (l)-[r:HAS_TAG]->(t)
-				`, {
-					l_id: link_meta.link.url,
-					t_id: tag.type + '-' + tag.label,
-					t_label: tag.label,
-					t_type: tag.type
-				}).catch(err => console.log(err))
-			}
-		}
-
-		return tx.commit()
-	})
+	.then(res => meta.graph(message))
 	.catch(err => {
 		console.error('errrr', err)
 	})
