@@ -3,12 +3,12 @@ const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(pr
 
 const nlc = require('../lib/nlc')
 
-const onMessage = message => {
+function* onMessage(message) {
 
 	const match = message.text.match(/update|training/gi)
 
 	if(message.user.name != 'taimur' || !match || match.length < 2)
-		return Promise.resolve(false);
+		return;
 
 	const session = driver.session();
 
@@ -50,5 +50,6 @@ const onMessage = message => {
 }
 
 module.exports = {
-	onMessage
+	onMessage,
+	key: msg => 'update-nlc'
 }

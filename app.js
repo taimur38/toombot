@@ -6,6 +6,8 @@ import preprocess from './preprocessors';
 import plugins from './plugins';
 import graph from './graph';
 
+import nlc from './lib/nlc';
+
 const token = process.env.SLACK_TOKEN;
 
 const rtm = new RtmClient(token, {
@@ -38,6 +40,7 @@ rtm.on(RTM_EVENTS.DISCONNECT, err => {
 
 const reaction_added = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_ADDED)
 const reaction_removed = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_REMOVED)
+const message_source = Rx.Observable.fromEvent(rtm, RTM_EVENTS.MESSAGE)
 
 reaction_added
 	.map(slackClean)
@@ -46,8 +49,6 @@ reaction_added
 reaction_removed
 	.map(slackClean)
 	.subscribe(msg => { graph.reaction.remove(msg); }, err => console.error('reaction error', err))
-
-const message_source = Rx.Observable.fromEvent(rtm, RTM_EVENTS.MESSAGE)
 
 const processed = message_source
 	.filter(message => message.type == 'message' && !message.subtype)
@@ -58,11 +59,16 @@ const processed = message_source
 
 const output = processed
 	.filter(message => message.user.name != 'toombot')
-	.flatMap(message => Promise.all(plugins.map(p => p(message))))
+	.flatMap(message => Promise.all(plugins(message)))
 	.flatMap(r => { /*console.log(r);*/ return r; }) // flattens array
 	.filter(r => r && r.response)
 	.flatMap(r => graph.isRepost(r).then(isRepost => isRepost ? false : r ))
 	.filter(r => r)
+	.tap(r => {
+		nlc.classify('toombot-output', r.response)
+			.then(res => console.log(res))
+			.catch(err => console.error('output nlc error', err))
+	})
 	.flatMap(r => {
 		return new Promise((resolve, reject) => {
 			rtm.sendMessage(r.response, r.message.channel.id, (err, msg) => {

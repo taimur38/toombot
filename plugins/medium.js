@@ -1,11 +1,11 @@
 const axios = require('axios');
 
-const onMessage = message => {
+function* onMessage(message) {
 
 	const links = message.links.filter(l => l.domain == "medium.com");
 
 	if(links.length == 0)
-		return Promise.resolve(false);
+		return false;
 
 	const splits = links[0].url.split('/');
 	const id = splits[splits.length - 1].split('#')[0];
@@ -19,5 +19,6 @@ const onMessage = message => {
 }
 
 module.exports = {
-	onMessage
+	onMessage,
+	key: msg => 'medium'
 }

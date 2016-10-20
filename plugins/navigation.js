@@ -1,12 +1,12 @@
 const axios = require('axios');
 const auth = require('../constants');
 
-const onMessage = message => {
+function* onMessage(message) {
 
 	let resp = /directions|navigate from (.*) to (.*)/ig.exec(message.text);
 
 	if(!resp || resp.length !== 3)
-		return Promise.resolve(false);
+		return;
 
 	let origin = resp[1];
 	let destination = resp[2];
@@ -27,12 +27,13 @@ const onMessage = message => {
 
 				return directions;
 			} else {
-				return false;
+				return;
 			}
 		})
-		.catch(err => { console.log(err); return false; })
+		.catch(err => { console.log(err); return; })
 }
 
 module.exports = {
-	onMessage
+	onMessage,
+	key: msg => 'navigation'
 }

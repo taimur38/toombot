@@ -2,6 +2,12 @@ const neo4j = require('neo4j-driver').v1;
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
 const isRepost = ({ response, message }) => {
+
+	console.log(response)
+	if(response.indexOf('http') == -1) {
+		return Promise.resolve(false);
+	}
+
 	const session = driver.session();
 	console.log(response)
 	const now = new Date();

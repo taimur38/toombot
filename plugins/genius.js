@@ -1,14 +1,14 @@
 const axios = require('axios');
 const auth = require('../constants');
 
-const onMessage = message => {
+function* onMessage(message) {
 
 	if(!message.alchemy) {
-		return Promise.resolve(false);
+		return;
 	}
 
 	if(message.text.indexOf('play me a song') < 0)
-		return Promise.resolve(false);
+		return;
 
 	let entities = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords].reduce((big_string, entity) => {
 		let lower_entity = entity.text.toLowerCase().replace(' ', '%20');
@@ -20,9 +20,9 @@ const onMessage = message => {
 		.then(rsp => rsp.data.tracks.items.length > 0 ? rsp.data.tracks.items[0].external_urls.spotify : false)
 		.catch(err => { console.log(err); return false })
 
-	return Promise.resolve(false);
 }
 
 module.exports = {
-	onMessage
+	onMessage,
+	key: msg => 'genius'
 }

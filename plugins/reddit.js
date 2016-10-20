@@ -7,10 +7,10 @@ const session = axios.create({
 	}
 });
 
-const onMessage = message => {
+function* onMessage(message) {
 
 	if(message.links.length == 0)
-		return Promise.resolve(false);
+		return;
 
 	const link = message.links[0];
 	let url = link.url;
@@ -84,5 +84,6 @@ const getComments = permalink => session.get(`${permalink}.json`)
 		})
 
 module.exports = {
-	onMessage
+	onMessage,
+	key: msg => 'reddit'
 }

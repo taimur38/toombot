@@ -10,14 +10,13 @@ const thresholds = {
 	keywords: 0.9
 };
 
-const onMessage = message => {
+function* onMessage(message) {
 
-	if(!message.alchemy || message.links.length > 0) {
-		return Promise.resolve(false);
-	}
+	if(!message.alchemy || message.links.length > 0)
+		return;
 
 	if(message.text.split(' ').length < 15)
-		return Promise.resolve(false)
+		return;
 
 	let context = {
 		concepts: [],
@@ -44,7 +43,7 @@ const onMessage = message => {
 	const merged = [...msg.context.concepts, ...msg.context.entities, ...msg.alchemy.concepts, ...msg.alchemy.entities, ...msg.alchemy.keywords];
 
 	if(merged.length < 4)
-		return Promise.resolve(false);
+		return;
 
 	return Promise.all(searchers.map(searcher => searcher.search(msg)))
 		.then(engine_results                  => engine_results.filter(res => res && res.length > 0))
@@ -149,5 +148,6 @@ const percentOverlap = (list1, list2, list3) => {
 }
 
 module.exports = {
-	onMessage
+	onMessage,
+	key: msg => 'search'
 }
