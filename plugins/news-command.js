@@ -25,7 +25,7 @@ function* onMessage(message) {
 		if(!concept_merge)
 			return 'i have no thoughts on the matter'
 
-		yield session.get(`/search.json?q=${concept_merge}`)
+		return session.get(`/search.json?q=${concept_merge}`)
 			.then(rsp => rsp.data)
 			.then(results => {
 
@@ -55,7 +55,7 @@ function* onMessage(message) {
 	}
 	else if(response.text.indexOf('think about') > -1) { //now
 		let topic = response.text.split("think about")[1].replace("?", "");
-		yield session.get(`/search.json?q=${topic}`)
+		return session.get(`/search.json?q=${topic}`)
 			.then(rsp => rsp.data)
 			.then(results => {
 				let promises = [];
@@ -92,6 +92,10 @@ function* onMessage(message) {
 				console.log(err);
 				return 'i have no thoughts on the matter'
 			})
+	}
+	else if(response.text.indexOf('what is') > -1) {
+		let topic = response.text.split("what is ")[1].replace("?", "").replace(" ", "%20");
+		return "https://en.wikipedia.org/wiki/" + topic;
 	}
 	else
 		return;

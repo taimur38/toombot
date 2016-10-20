@@ -85,5 +85,6 @@ const getComments = permalink => session.get(`${permalink}.json`)
 
 module.exports = {
 	onMessage,
+	getComments,
 	key: msg => 'reddit'
 }
