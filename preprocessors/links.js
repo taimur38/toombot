@@ -3,16 +3,24 @@ export const requirements = [];
 
 export async function Process(message) {
 
-	const re = /(https?.\/\/+)([^ ]+)/g;
+	const re = /(https?.\/\/+)([^ >]+)/g;
 	const found = message.text.match(re) || [];
 	if(!found || found.length == 0)
 		return { links: [] }
 
-	const url = found[0].slice(0, found[0].length - 1)
-
 	return {
-		links: found.map(l => ({
-			url: l.slice(0, l.length - 1),
+		links: found.filter(url => {
+			const splits = url.split('|');
+			if(splits.length == 1) {
+				return true;
+			}
+
+			if(splits[0].indexOf(splits[splits.length - 1]) > -1) {
+				return false;
+			}
+		})
+		.map(l => ({
+			url: l,
 			domain: l.split('?')[0].split('/')[2].toLowerCase()
 		}))
 	}

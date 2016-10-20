@@ -11,7 +11,6 @@ function* onMessage(message) {
 	if(!message.isQuestion)
 		return false;
 
-	console.log(message.context_correction, message.text);
 	const query = message.context_correction || message.text;
 
 	return axios.get(`http://api.wolframalpha.com/v2/query?appid=${appid}&input=${query}&format=plaintext`)
