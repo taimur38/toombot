@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { bot } from '../../constants'
+import { bot } from '../constants'
 import * as analyzer from './search/index'
 import * as commenter from './reddit'
+
 
 const session = axios.create({
 	baseURL: 'http://reddit.com',
@@ -13,7 +14,10 @@ const session = axios.create({
 function* onMessage(message) {
 
 
-	const response = yield { text: 'hey', filter: msg => true };
+	const response = yield {
+		text: 'hey',
+		filter: msg => msg.text.indexOf('thoughts') > -1 || msg.text.indexOf('think about') > -1 || msg.text.indexOf('what is') > -1
+	};
 
 	if(response.text.indexOf('thoughts') > -1) { //context
 		let concepts = message.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
@@ -46,9 +50,8 @@ function* onMessage(message) {
 			.then(flattened_results               => Promise.all(flattened_results.map(analyzer.analyze)))
 			.then(analyzed_results                => analyzer.rank(analyzed_results, message, analyzer.thresholds))
 			.then(ranked                          => ranked[0])
-			.then(winner                          => winner == undefined ? false : winner.message)
+			.then(winner                          => winner == undefined ? false : {text: winner.message})
 			.catch(err => {
-				console.log(err);
 				return { text: 'i have no thoughts on the matter' }
 			})
 	}
@@ -71,10 +74,10 @@ function* onMessage(message) {
 					let top_permalink = post.data.permalink;
 					if(top_permalink.indexOf('?') > -1){
 						const t = top_permalink.split('?')[0];
-						promises.push(commenter.getComments(t.slice(0, t.length - 1)));
+						promises.push(commenter.getComments(t.slice(0, t.length - 1)).then(rsp => rsp.text));
 					}
 					else
-						promises.push(commenter.getComments(top_permalink));
+						promises.push(commenter.getComments(top_permalink).then(rsp => rsp.text));
 				}
 
 				return Promise.all(promises)
@@ -85,16 +88,16 @@ function* onMessage(message) {
 					if(result)
 						final_answer = final_answer + "\n" + result;
 				}
-				return final_answer;
+				return {text: final_answer};
 			})
 			.catch(err => {
 				console.log(err);
-				return 'i have no thoughts on the matter'
+				return {text: 'i have no thoughts on the matter'}
 			})
 	}
 	else if(response.text.indexOf('what is') > -1) {
 		let topic = response.text.split("what is ")[1].replace("?", "").replace(" ", "%20");
-		return "https://en.wikipedia.org/wiki/" + topic;
+		return {text: "https://en.wikipedia.org/wiki/" + topic};
 	}
 	else
 		return;
@@ -102,6 +105,6 @@ function* onMessage(message) {
 
 module.exports = {
 	onMessage,
-	key: msg => msg.user.id + '-hello',
+	key: msg => msg.user.id + '-news',
 	filter: msg => msg.text.indexOf('hey') > -1 && msg.text.indexOf(bot.name) > -1
 }

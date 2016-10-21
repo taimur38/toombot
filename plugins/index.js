@@ -8,7 +8,8 @@ const plugins = [
 	require('./arpan-fader'),
 	require('./update-nlc'),
 	require('./search'),
-	require('./hello')
+	require('./hello'),
+	require('./news-command')
 	//wrapper(require('./reddit-enrichment').onMessage),
 	//wrapper(require('./image-tagging').onMessage),
 	//wrapper(require('./hot').onMessage),
@@ -16,6 +17,16 @@ const plugins = [
 	//wrapper(require('./sentiment').onMessage),
 	//wrapper(require('./location').onMessage)
 ];
+
+let keys = {};
+plugins.forEach(a => {
+	if(a.key in keys) {
+		console.log("1 or more duplicate keys!!!");
+		process.exit(1);
+	}
+	else
+		keys[a.key] = true
+});
 
 // each plugin is a generator. there is one generator per channel.
 
@@ -40,7 +51,7 @@ const onMessage = message => {
 				if(output.done) {
 					actors.delete(key);
 					if(output.value && typeof output.value.then === 'function') {
-						return output.value.then(rsp => rsp.text)
+						return output.value.then(rsp => ({response: rsp.text, message}))
 					}
 					return output.value == undefined ? { response: false, message } : { response: output.value.text, message } ;
 				}
