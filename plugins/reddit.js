@@ -77,7 +77,7 @@ const getComments = permalink => session.get(`${permalink}.json`)
 
 			//console.log(scored)
 
-			return { text: scored[0].text };
+			return { text: scored[0] ? scored[0].text : false };
 		})
 
 module.exports = {

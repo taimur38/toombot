@@ -1,4 +1,4 @@
-import { bot } from '../../constants';
+import { bot } from '../constants';
 
 function* onMessage(message) {
 
