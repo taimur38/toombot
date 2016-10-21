@@ -26,6 +26,10 @@ const NLC = {
 	password: process.env.NLC_PASS
 }
 
+const bot = {
+	name: process.env.BOT_NAME
+}
+
 module.exports = {
 	alchemy_key,
 	alchemy_keys,
@@ -35,5 +39,6 @@ module.exports = {
 	geniusToken,
 	googleApiKey,
 	wolframAppID,
-	NLC
+	NLC,
+	bot
 }

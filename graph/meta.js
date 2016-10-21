@@ -3,14 +3,21 @@ const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(pr
 
 const graph = message => {
 
+	const session = driver.session();
 	return Promise.all([
-		companize(message),
-		linkize(message)
-	])
+		companize(message, session),
+		linkize(message, session)
+	]).then(results => {
+		session.close();
+		return results;
+	})
+	.catch(err => {
+		console.error('promise all error in meta', err)
+		session.close();
+	})
 }
 
-const companize = message => {
-	const session = driver.session();
+async function companize(message, session) {
 
 	if(message.companies.length == 0)
 		return Promise.resolve(false);
@@ -43,14 +50,13 @@ const companize = message => {
 			c_typeDisp: company.typeDisp,
 			c_evidence: company.evidence,
 			r_rank: i
-		}).catch(err => console.error(err))
+		}).catch(err => console.error('tx run error', message.companies, err))
 	}
 
 	return tx.commit();
 }
 
 const linkize = message => {
-	const session = driver.session();
 
 	if(message.links.length == 0)
 		return Promise.resolve(false);
@@ -84,12 +90,13 @@ const linkize = message => {
 				t_id: tag.type + '-' + tag.label,
 				t_label: tag.label,
 				t_type: tag.type
-			}).catch(err => console.log(err))
+			}).catch(err => console.error('tx run error', message.link_meta, err))
 		}
 	}
 
 	return tx.commit()
 }
+
 module.exports = {
 	graph
 }

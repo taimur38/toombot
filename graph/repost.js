@@ -24,7 +24,10 @@ const isRepost = ({ response, message }) => {
 		session.close();
 		return res.records.length != 0;
 	})
-	.catch(err => console.log(err) )
+	.catch(err => {
+		console.error('repost error', err)
+		session.close();
+	})
 }
 
 module.exports = isRepost;
