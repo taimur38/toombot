@@ -12,10 +12,8 @@ const session = axios.create({
 
 function* onMessage(message) {
 
-	if(message.text.indexOf('hey') == -1 || message.text.indexOf(bot.name) == -1)
-		return;
 
-	const response = yield 'hey';
+	const response = yield { text: 'hey', filter: msg => true };
 
 	if(response.text.indexOf('thoughts') > -1) { //context
 		let concepts = message.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
@@ -24,7 +22,7 @@ function* onMessage(message) {
 		let concept_merge = [...entities, ...concepts].slice(0,2).reduce((all, c) => `${all} ${c.text}`, '');
 
 		if(!concept_merge)
-			return 'i have no thoughts on the matter'
+			return { text: 'i have no thoughts on the matter' }
 
 		return session.get(`/search.json?q=${concept_merge}`)
 			.then(rsp => rsp.data)
@@ -51,7 +49,7 @@ function* onMessage(message) {
 			.then(winner                          => winner == undefined ? false : winner.message)
 			.catch(err => {
 				console.log(err);
-				return 'i have no thoughts on the matter'
+				return { text: 'i have no thoughts on the matter' }
 			})
 	}
 	else if(response.text.indexOf('think about') > -1) { //now
@@ -104,5 +102,6 @@ function* onMessage(message) {
 
 module.exports = {
 	onMessage,
-	key: msg => msg.user.id + '-hello'
+	key: msg => msg.user.id + '-hello',
+	filter: msg => msg.text.indexOf('hey') > -1 && msg.text.indexOf(bot.name) > -1
 }

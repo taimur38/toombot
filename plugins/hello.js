@@ -1,3 +1,5 @@
+import { bot } from '../../constants';
+
 function* onMessage(message) {
 
 	const response = yield {
@@ -10,6 +12,6 @@ function* onMessage(message) {
 
 module.exports = {
 	onMessage,
-	filter: msg => msg.text.indexOf('hello') > -1 &&  msg.text.indexOf('toombot') > -1,
+	filter: msg => msg.text.indexOf('hello') > -1 &&  msg.text.indexOf(bot.name) > -1,
 	key: msg => msg.user.id + '-hello'
 }
