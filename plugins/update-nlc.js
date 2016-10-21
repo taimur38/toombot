@@ -5,11 +5,6 @@ const nlc = require('../lib/nlc')
 
 function* onMessage(message) {
 
-	const match = message.text.match(/update|training/gi)
-
-	if(message.user.name != 'taimur' || !match || match.length < 2)
-		return;
-
 	const session = driver.session();
 
 	return session.run(`
@@ -44,12 +39,22 @@ function* onMessage(message) {
 		return formatted;
 	})
 	.then(training_data => nlc.createClassifier('toombot-output', training_data))
-	.then(resp => `training new classifier`)
-	.catch(err => console.log('error in update nlc', err))
+	.then(resp => {
+		session.close();	
+		return { text: `training new classifier` }
+	})
+	.catch(err => {
+		console.log('error in update nlc', err);
+		session.close();
+	})
 
 }
 
 module.exports = {
 	onMessage,
-	key: msg => 'update-nlc'
+	key: msg => 'update-nlc',
+	filter: msg => {
+		const match = msg.text.match(/update|training/gi)
+		return msg.user.name == 'taimur' && match && match.length == 2
+	}
 }

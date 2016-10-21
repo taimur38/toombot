@@ -3,10 +3,6 @@ const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(pr
 
 function* onMessage(message) {
 
-	const match = message.text.match(/arpan|fader/g);
-	if(!match || match.length < 2)
-		return false;
-
 	const session = driver.session();
 
 	return session.run(`
@@ -15,12 +11,22 @@ function* onMessage(message) {
 		RETURN count(m) as posts
 	`, {})
 	.then(res => res.records[0].get('posts').toInt())
-	.then(posts => `arpan has posted ${posts} fader link${posts == 1 ? '' : 's'}`)
-	.catch(err => console.log('error in arpanfader', err))
+	.then(posts => {
+		session.close();
+		return { text: `arpan has posted ${posts} fader link${posts == 1 ? '' : 's'}` }
+	})
+	.catch(err => {
+		session.close();
+		console.log('error in arpanfader', err)
+	})
 
 }
 
 module.exports = {
 	onMessage,
-	key: msg => 'arpan-fader'
+	key: msg => 'arpan-fader',
+	filter: msg => {
+		const match = msg.text.match(/arpan|fader/g);
+		return match && match.length == 2;
+	}
 }

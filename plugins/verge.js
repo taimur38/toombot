@@ -6,12 +6,6 @@ const parser = new dom();
 
 function* onMessage(message) {
 
-	const relevant_links = message.links.filter(x => x.domain.match(/theverge.com|recode.net/));
-
-	if(relevant_links.length == 0) {
-		return;
-	}
-
 	return axios.get(relevant_links[0].url)
 		.then(rsp => {
 
@@ -49,7 +43,7 @@ function* onMessage(message) {
 				}
 			}
 
-			return response.length > 0 ? response : false;
+			return response.length > 0 ? { text: response } : false;
 		})
 		.catch(err => { console.log(err); return false; })
 
@@ -57,5 +51,10 @@ function* onMessage(message) {
 
 module.exports = {
 	onMessage,
-	key: msg => 'verge'
+	key: msg => 'verge',
+	filter: msg => {
+		const relevant_links = msg.links.filter(x => x.domain.match(/theverge.com|recode.net/));
+
+		return relevant_links.length > 0;
+	}
 }

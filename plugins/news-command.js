@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { bot } from '../../constants'
 import * as analyzer from './search/index'
 import * as commenter from './reddit'
 
@@ -11,7 +12,7 @@ const session = axios.create({
 
 function* onMessage(message) {
 
-	if(message.text.indexOf('hey') == -1 || message.text.indexOf('tot') == -1)
+	if(message.text.indexOf('hey') == -1 || message.text.indexOf(bot.name) == -1)
 		return;
 
 	const response = yield 'hey';

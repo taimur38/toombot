@@ -9,9 +9,6 @@ const session = axios.create({
 
 function* onMessage(message) {
 
-	if(message.links.length == 0)
-		return;
-
 	const link = message.links[0];
 	let url = link.url;
 
@@ -80,11 +77,12 @@ const getComments = permalink => session.get(`${permalink}.json`)
 
 			//console.log(scored)
 
-			return scored[0].text;
+			return { text: scored[0].text };
 		})
 
 module.exports = {
 	onMessage,
 	getComments,
-	key: msg => 'reddit'
+	key: msg => 'reddit',
+	filter: msg => msg.links.length > 0
 }
