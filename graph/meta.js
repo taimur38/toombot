@@ -56,7 +56,7 @@ async function companize(message, session) {
 	return tx.commit();
 }
 
-const linkize = message => {
+const linkize = (message, session) => {
 
 	if(message.links.length == 0)
 		return Promise.resolve(false);
