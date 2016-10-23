@@ -87,7 +87,7 @@ const onMessage = message => {
 			actors.set(key, { filter: output.value.filter, generator: actor })
 		}
 
-		return Promise.resolve({ response: output.value.text, message });
+		return Promise.resolve({ response: output.value ? output.value.text : false, message });
 
 	});
 
