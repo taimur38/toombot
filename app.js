@@ -17,6 +17,14 @@ const rtm = new RtmClient(token, {
 rtm.start();
 
 const slackClean = message => {
+	//TODO: make preproc
+	const ats = message.text.match(/@([^<>])/g);
+	const users = ats && ats.length > 0 && ats.map(uid => rtm.dataStore.getUserById(uid.slice(1)));
+
+	let text = message.text;
+	if(userIds) {
+	}
+
 	return {
 		...message,
 		user: rtm.dataStore.getUserById(message.user),
