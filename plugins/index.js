@@ -9,7 +9,8 @@ const plugins = [
 	require('./update-nlc'),
 	require('./search'),
 	require('./hello'),
-	require('./news-command')
+	require('./news-command'),
+	require('./help-me-respond')
 	//wrapper(require('./reddit-enrichment').onMessage),
 	//wrapper(require('./image-tagging').onMessage),
 	//wrapper(require('./hot').onMessage),
