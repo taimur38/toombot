@@ -8,9 +8,6 @@ const parser = new dom();
 
 function* onMessage(message) {
 
-	if(!message.isQuestion)
-		return false;
-
 	const query = message.context_correction || message.text;
 
 	return axios.get(`http://api.wolframalpha.com/v2/query?appid=${appid}&input=${query}&format=plaintext`)
@@ -20,7 +17,7 @@ function* onMessage(message) {
 			if(pods.length == 0)
 				return false;
 
-			return pods[0].firstChild.data;
+			return { text: pods[0].firstChild.data };
 		})
 		.catch(err => { console.log(err); return false; })
 
@@ -28,5 +25,6 @@ function* onMessage(message) {
 
 module.exports = {
 	onMessage,
+	filter: msg => msg.isQuestion,
 	key: msg => 'wolfram'
 }

@@ -3,6 +3,11 @@ const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(pr
 
 const addReaction = reaction => {
 	const session = driver.session();
+	if(reaction.item.ts == undefined) {
+		console.log('no reaction ts', reaction.item)
+		return Promise.resolve(false);
+	}
+
 	session.run(`
 		MATCH (u:User {id: {u_id}})
 		MATCH (m:Message { timestamp: {m_ts} })
@@ -20,6 +25,10 @@ const addReaction = reaction => {
 
 const removeReaction = reaction => {
 	const session = driver.session();
+	if(reaction.item.ts == undefined) {
+		console.log('no reaction ts', reaction.item)
+		return Promise.resolve(false);
+	}
 	session.run(`MATCH (u:User {id: {u_id} })-[r:REACTED {type: {r_type} }]->(m:Message { timestamp: {m_ts} }) DELETE r`, {
 		u_id: reaction.user.id,
 		r_type: reaction.reaction,

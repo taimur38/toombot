@@ -3,6 +3,7 @@ const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(pr
 
 const graph = message => {
 
+	const session = driver.session();
 	return Promise.all([
 		companize(message),
 		linkize(message)
@@ -13,7 +14,6 @@ const graph = message => {
 }
 
 const companize = message => {
-
 	const session = driver.session();
 	if(message.companies.length == 0)
 		return Promise.resolve(false);

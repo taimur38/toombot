@@ -5,9 +5,6 @@ function* onMessage(message) {
 
 	let resp = /directions|navigate from (.*) to (.*)/ig.exec(message.text);
 
-	if(!resp || resp.length !== 3)
-		return;
-
 	let origin = resp[1];
 	let destination = resp[2];
 
@@ -25,7 +22,7 @@ function* onMessage(message) {
 
 				directions += `\n\nMap: http://maps.googleapis.com/maps/api/staticmap?path=enc:${res.data.routes[0].overview_polyline.points}&size=400x400`
 
-				return directions;
+				return { text: directions };
 			} else {
 				return;
 			}
@@ -35,5 +32,9 @@ function* onMessage(message) {
 
 module.exports = {
 	onMessage,
-	key: msg => 'navigation'
+	key: msg => 'navigation',
+	filter: msg => {
+		let resp = /directions|navigate from (.*) to (.*)/ig.exec(msg.text);
+		return resp && resp.length == 3;
+	}
 }

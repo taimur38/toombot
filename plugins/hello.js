@@ -1,19 +1,17 @@
+import { bot } from '../constants';
+
 function* onMessage(message) {
 
-	if(message.text.indexOf('hello') == -1 || message.text.indexOf('toombot') == -1)
-		return;
+	const response = yield {
+		filter: msg => msg.text.indexOf('how are you') > -1,
+		text: 'hey'
+	};
 
-	const response = yield 'hey';
-
-	console.log(response)
-	if(response.text.indexOf('how are you') > -1) {
-		yield 'good'
-	}
-	else
-		return;
+	return { text: 'good' }
 }
 
 module.exports = {
 	onMessage,
+	filter: msg => msg.text.indexOf('hello') > -1 &&  msg.text.indexOf(bot.name) > -1,
 	key: msg => msg.user.id + '-hello'
 }

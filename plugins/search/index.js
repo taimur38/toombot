@@ -12,12 +12,6 @@ const thresholds = {
 
 function* onMessage(message) {
 
-	if(!message.alchemy || message.links.length > 0)
-		return;
-
-	if(message.text.split(' ').length < 15)
-		return;
-
 	let context = {
 		concepts: [],
 		entities: [],
@@ -51,7 +45,7 @@ function* onMessage(message) {
 		.then(flattened_results               => Promise.all(flattened_results.map(analyze)))
 		.then(analyzed_results                => rank(analyzed_results, msg, thresholds))
 		.then(ranked                          => ranked[0])
-		.then(winner                          => winner == undefined ? false : winner.message)
+		.then(winner                          => winner == undefined ? false : { text: winner.message })
 		.catch(err                            => console.error('search error', err))
 }
 
@@ -149,5 +143,9 @@ const percentOverlap = (list1, list2, list3) => {
 
 module.exports = {
 	onMessage,
-	key: msg => 'search'
+	analyze,
+	rank,
+	thresholds,
+	key: msg => 'search',
+	filter: msg => msg.alchemy && msg.links.length > 0 && msg.text.split(' ').length >= 15
 }

@@ -8,7 +8,8 @@ const plugins = [
 	require('./arpan-fader'),
 	require('./update-nlc'),
 	require('./search'),
-	require('./hello')
+	require('./hello'),
+	require('./news-command')
 	//wrapper(require('./reddit-enrichment').onMessage),
 	//wrapper(require('./image-tagging').onMessage),
 	//wrapper(require('./hot').onMessage),
@@ -17,9 +18,19 @@ const plugins = [
 	//wrapper(require('./location').onMessage)
 ];
 
+let keys = {};
+plugins.forEach(a => {
+	if(a.key in keys) {
+		console.log("1 or more duplicate keys!!!");
+		process.exit(1);
+	}
+	else
+		keys[a.key] = true
+});
+
 // each plugin is a generator. there is one generator per channel.
 
-const actors = new Map();
+const actors = new Map(); // { filter: fn => bool, generator: {}}
 
 // return observable?
 const onMessage = message => {
@@ -32,21 +43,51 @@ const onMessage = message => {
 		let actor;
 		if(actors.has(key)) {
 			actor = actors.get(key);
-		} else {
-			actor = plugin.onMessage(message);
-			actors.set(key, actor);
+			if(!actor.filter(message)) {
+				actors.delete(key);
+			}
+			else {
+				const output = actor.generator.next(message);
+				if(output.done) {
+					actors.delete(key);
+					if(output.value && typeof output.value.then === 'function') {
+						return output.value.then(rsp => ({response: rsp.text, message}))
+					}
+					return output.value == undefined ? { response: false, message } : { response: output.value.text, message } ;
+				}
+				if(output.value && typeof output.value.then === 'function') {
+					return output.value.then(rsp => {
+						actors.set(key, { filter: rsp.filter, generator: actor.generator })
+						return { response: rsp.text, message };
+					})
+				}
+				actors.set(key, { filter: output.value.filter, generator: actor.generator })
+				return { response: output.value.text, message };
+			}
 		}
 
-		const output = actor.next(message);
+		if(!plugin.filter(message))
+			return Promise.resolve(false);
 
-		if(output.done)
-			actors.delete(key);
+		actor = plugin.onMessage(message); // returns generator
+
+		const output = actor.next(message); // output.value = { filter: msg => { return boolean }, text: ''}
 
 		if(output.value && typeof output.value.then === 'function') {
-			return output.value.then(v => ({ response: v, message }));
+			return output.value.then(rsp => {
+				if(!output.done) {
+					actors.set(key, { filter: rsp.filter, generator: actor })
+					return {response: rsp.text, message}
+				}
+				return { response: rsp ? rsp.text : rsp, message }
+			});
 		}
 
-		return Promise.resolve({ response: output.value, message });
+		if(!output.done) {
+			actors.set(key, { filter: output.value.filter, generator: actor })
+		}
+
+		return Promise.resolve({ response: output.value && output.value.text, message });
 
 	});
 
