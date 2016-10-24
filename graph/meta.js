@@ -7,11 +7,14 @@ const graph = message => {
 		companize(message),
 		linkize(message)
 	])
+	.catch(err => {
+		console.error('promise all error in meta', err)
+	})
 }
 
 const companize = message => {
-	const session = driver.session();
 
+	const session = driver.session();
 	if(message.companies.length == 0)
 		return Promise.resolve(false);
 
@@ -20,7 +23,7 @@ const companize = message => {
 	for(let i = 0; i < message.companies.length; i++) {
 		const company = message.companies[i];
 		tx.run(`
-			MERGE (m:Message {id: {m_id} })
+			MATCH (m:Message {id: {m_id} })
 			MERGE (c:Company {id: {c_id} })
 			ON CREATE SET
 				c.name = {c_name},
@@ -43,29 +46,29 @@ const companize = message => {
 			c_typeDisp: company.typeDisp,
 			c_evidence: company.evidence,
 			r_rank: i
-		}).catch(err => console.error(err))
+		}).catch(err => console.error('tx run error', message.companies, err))
 	}
 
-	return tx.commit();
+	return tx.commit().then(() => session.close());
 }
 
-const linkize = message => {
-	const session = driver.session();
+const linkize = (message) => {
 
 	if(message.links.length == 0)
 		return Promise.resolve(false);
 
+	const session = driver.session();
 	const tx = session.beginTransaction();
 
 	for(let link of message.links) {
 		tx.run(`
-			MERGE (m:Message {id: {m_id} })
+			MATCH (m:Message {id: {m_id} })
 			MERGE (l:Link {id: {l_url}})
 			MERGE (m)-[r:CONTAINS_LINK]->(l)
 		`, {
 			m_id: message.id,
 			l_url: link.url
-		})
+		}).catch(err => console.error('tx run error', message.links, err))
 	}
 
 	for(let link_meta of message.link_meta) {
@@ -84,12 +87,13 @@ const linkize = message => {
 				t_id: tag.type + '-' + tag.label,
 				t_label: tag.label,
 				t_type: tag.type
-			}).catch(err => console.log(err))
+			}).catch(err => console.error('tx run error', message.link_meta, err))
 		}
 	}
 
-	return tx.commit()
+	return tx.commit().then(() => session.close())
 }
+
 module.exports = {
 	graph
 }
