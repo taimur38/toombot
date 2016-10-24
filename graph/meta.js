@@ -2,24 +2,18 @@ const neo4j = require('neo4j-driver').v1;
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
 const graph = message => {
-
-	const session = driver.session();
 	return Promise.all([
-		companize(message, session),
-		linkize(message, session),
-		annotate(message, session)
-	]).then(results => {
-		session.close();
-		return results;
-	})
+		companize(message),
+		linkize(message),
+		annotate(message)
+	])
 	.catch(err => {
 		console.error('promise all error in meta', err)
-		session.close();
 	})
 }
 
-function annotate(message, session) {
-
+function annotate(message) {
+	const session = driver.session();
 	const tx = session.beginTransaction();
 
 	const transactions = [
@@ -33,7 +27,7 @@ function annotate(message, session) {
 	for(let trans of transactions)
 		tx.run(trans).catch(err => console.error('tx run error'));
 
-	return tx.commit();
+	return tx.commit().then(() => session.close());
 }
 
 const emotionalize = (nodeType, nodeId, emotions) => {
@@ -193,8 +187,8 @@ const knowledgeGraphize = (rootType, rootId, types) => {
 	return transactions;
  }
 
-async function companize(message, session) {
-
+const companize = message => {
+	const session = driver.session();
 	if(message.companies.length == 0)
 		return Promise.resolve(false);
 
@@ -203,7 +197,7 @@ async function companize(message, session) {
 	for(let i = 0; i < message.companies.length; i++) {
 		const company = message.companies[i];
 		tx.run(`
-			MERGE (m:Message {id: {m_id} })
+			MATCH (m:Message {id: {m_id} })
 			MERGE (c:Company {id: {c_id} })
 			ON CREATE SET
 				c.name = {c_name},
@@ -229,25 +223,26 @@ async function companize(message, session) {
 		}).catch(err => console.error('tx run error', message.companies, err))
 	}
 
-	return tx.commit();
+	return tx.commit().then(() => session.close());
 }
 
-const linkize = (message, session) => {
+const linkize = (message) => {
 
 	if(message.links.length == 0)
 		return Promise.resolve(false);
 
+	const session = driver.session();
 	const tx = session.beginTransaction();
 
 	for(let link of message.links) {
 		tx.run(`
-			MERGE (m:Message {id: {m_id} })
+			MATCH (m:Message {id: {m_id} })
 			MERGE (l:Link {id: {l_url}})
 			MERGE (m)-[r:CONTAINS_LINK]->(l)
 		`, {
 			m_id: message.id,
 			l_url: link.url
-		})
+		}).catch(err => console.error('tx run error', message.links, err))
 	}
 
 	for(let link_meta of message.link_meta) {
@@ -270,9 +265,9 @@ const linkize = (message, session) => {
 		}
 	}
 
-	return tx.commit()
+	return tx.commit().then(() => session.close())
 }
 
 module.exports = {
 	graph
-}
+};
