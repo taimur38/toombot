@@ -18,8 +18,11 @@ rtm.start();
 
 const slackClean = message => {
 
-	const ats = message.text.match(/@([^<>]+)/g);
-	const mentions = ats && ats.length > 0 && ats.map(uid => rtm.dataStore.getUserById(uid.slice(1)));
+	let mentions = undefined;
+	if(message.text) {
+		const ats = message.text.match(/@([^<>]+)/g);
+		mentions = ats && ats.length > 0 && ats.map(uid => rtm.dataStore.getUserById(uid.slice(1)));
+	}
 
 	return {
 		...message,
