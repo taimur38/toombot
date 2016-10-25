@@ -86,6 +86,8 @@ function* onMessage(message) {
 
 		if(max_message)
 			return { text: max_message };
+
+		return { text: 'no overlaps :(' }
 	})
 	.catch(err => {
 		session.close();
