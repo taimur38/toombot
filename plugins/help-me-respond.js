@@ -5,11 +5,12 @@ function* onMessage(message) {
 
 	const session = driver.session();
 	const channel = message.channel.id;
-	const user = message.text.split("respond for ")[1];
+	const user = message.mentions[0].id;
+
 	const transaction = `
-		MATCH (c:SlackChannel {id: '${channel}'})<--(m: Message)<--(u1: User {name: '${user}'})
+		MATCH (c:SlackChannel {id: '${channel}'})<--(m: Message)<--(u1: User {id: '${user}'})
 		WITH m
-		MATCH (c:SlackChannel {id: '${channel}'})<--(n: Message)<--(u2: User {name: '${user}'})
+		MATCH (c:SlackChannel {id: '${channel}'})<--(n: Message)<--(u2: User {id: '${user}'})
 		WHERE toFloat(m.timestamp) - toFloat(n.timestamp) > 0 and toFloat(m.timestamp) - toFloat(n.timestamp) < 30
 		WITH m, n
 		MATCH (n)-[r1:HAS_ENTITY|HAS_TAXONOMY|HAS_KEYWORD|HAS_CONCEPT]-(c)
@@ -76,5 +77,5 @@ function* onMessage(message) {
 module.exports = {
 	onMessage,
 	key: msg => 'help-me',
-	filter: msg => msg.prevMessage && msg.prevMessage.alchemy && msg.text.indexOf('respond for') > -1
+	filter: msg => msg.prevMessage && msg.prevMessage.alchemy && msg.text.indexOf('respond for') > -1 && msg.mentions.length > 0
 }
