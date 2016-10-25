@@ -49,17 +49,20 @@ function* onMessage(message) {
 			for(let concept of alchemy.entities) {
 				if(concept.id in alchemized.entities) {
 					count += 1;
+					score += (concept.score + alchemized.entities[concept.id]) / 2;
 				}
 			}
 
 			for(let concept of alchemy.keywords) {
 				if(concept.id in alchemized.keywords) {
 					count += 1;
+					score += (concept.score + alchemized.keywords[concept.id]) / 2;
 				}
 			}
+			let final_score = count * score;
 
-			if(count > max && new_message.properties.text.indexOf('respond for') == -1) {
-				max = count;
+			if(final_score > max && new_message.properties.text.indexOf('respond for') == -1) {
+				max = final_score;
 				max_message = new_message.properties.text;
 			}
 		}
