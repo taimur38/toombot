@@ -17,10 +17,15 @@ const rtm = new RtmClient(token, {
 rtm.start();
 
 const slackClean = message => {
+
+	const ats = message.text.match(/@([^<>]+)/g);
+	const mentions = ats && ats.length > 0 && ats.map(uid => rtm.dataStore.getUserById(uid.slice(1)));
+
 	return {
 		...message,
 		user: rtm.dataStore.getUserById(message.user),
 		timestamp: new Date(parseFloat(message.ts) * 1000),
+		mentions,
 		channel:
 			rtm.dataStore.getChannelById(message.channel) ||
 			rtm.dataStore.getGroupById(message.channel) ||
