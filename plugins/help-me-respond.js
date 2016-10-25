@@ -77,7 +77,6 @@ function* onMessage(message) {
 				}
 			}
 			let final_score = count * score;
-			console.log(final_score, max)
 
 			if(final_score > max && new_message.properties.text.indexOf('respond for') == -1) {
 				max = final_score;
