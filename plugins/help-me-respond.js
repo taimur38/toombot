@@ -10,7 +10,7 @@ function* onMessage(message) {
 	const transaction = `
 		MATCH (c:SlackChannel)<--(m: Message)<--(u1: User {id: '${user}'})
 		WITH m
-		MATCH (c:SlackChannel)<--(n: Message)<--(u2: User {id: '${user}'})
+		MATCH (c)<--(n: Message)<--(u2: User)
 		WHERE toFloat(m.timestamp) - toFloat(n.timestamp) > 0 and toFloat(m.timestamp) - toFloat(n.timestamp) < 30 and u2.id <> '${user}'
 		WITH m, n
 		MATCH (n)-[r1:HAS_ENTITY|HAS_TAXONOMY|HAS_KEYWORD|HAS_CONCEPT]-(c)
