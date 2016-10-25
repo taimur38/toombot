@@ -5,11 +5,11 @@ function* onMessage(message) {
 
 	const session = driver.session();
 	const channel = message.channel.id;
-	const user = message.user.id;
+	const user = message.text.split("respond for ")[1];
 	const transaction = `
-		MATCH (c:SlackChannel {id: '${channel}'})<--(m: Message)<--(u1: User {id: '${user}'})
+		MATCH (c:SlackChannel {id: '${channel}'})<--(m: Message)<--(u1: User {name: '${user}'})
 		WITH m
-		MATCH (c:SlackChannel {id: '${channel}'})<--(n: Message)<--(u2: User {id: '${user}'})
+		MATCH (c:SlackChannel {id: '${channel}'})<--(n: Message)<--(u2: User {name: '${user}'})
 		WHERE toFloat(m.timestamp) - toFloat(n.timestamp) > 0 and toFloat(m.timestamp) - toFloat(n.timestamp) < 30
 		WITH m, n
 		MATCH (n)-[r1:HAS_ENTITY|HAS_TAXONOMY|HAS_KEYWORD|HAS_CONCEPT]-(c)
@@ -57,7 +57,7 @@ function* onMessage(message) {
 				}
 			}
 
-			if(count > max) {
+			if(count > max && new_message.properties.text.indexOf('respond for') == -1) {
 				max = count;
 				max_message = new_message.properties.text;
 			}

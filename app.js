@@ -22,7 +22,7 @@ const slackClean = message => {
 	const users = ats && ats.length > 0 && ats.map(uid => rtm.dataStore.getUserById(uid.slice(1)));
 
 	let text = message.text;
-	if(userIds) {
+	if(users) {
 	}
 
 	return {
