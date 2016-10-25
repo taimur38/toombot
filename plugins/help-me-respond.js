@@ -7,18 +7,23 @@ function* onMessage(message) {
 	const channel = message.channel.id;
 	const user = message.mentions[0].id;
 
+
 	const transaction = `
-		MATCH (c:SlackChannel)<--(m: Message)<--(u1: User {id: '${user}'})
-		WITH m
-		MATCH (c)<--(n: Message)<--(u2: User)
+		MATCH (c:SlackChannel)<--(m:Message)<--(u1:User {id: '${user}'})
+		WITH m, c
+		MATCH (c)<--(n:Message)<--(u2: User)
 		WHERE toFloat(m.timestamp) - toFloat(n.timestamp) > 0 and toFloat(m.timestamp) - toFloat(n.timestamp) < 30 and u2.id <> '${user}'
-		WITH m, n
+		WITH m,n
 		MATCH (n)-[r1:HAS_ENTITY|HAS_TAXONOMY|HAS_KEYWORD|HAS_CONCEPT]-(c)
-		RETURN n as message, collect(distinct([c, r1.score, labels(c)])) as concepts
-	`;
+		RETURN m as message, collect(distinct([c, r1.score, labels(c)])) as concepts
+	`
+
+	console.log(transaction)
 
 	return session.run(transaction, {})
 	.then(res => {
+		session.close();
+
 		let records = res.records;
 		let max = 0;
 		let max_message;
@@ -32,34 +37,47 @@ function* onMessage(message) {
 				keywords: {},
 				taxonomy: {}
 			}
-			let concepts = meta.filter(concept => concept[2][0] == "Concept").forEach(concept => alchemized.concepts[concept[0].id] = concept[1]);
-			let entities = meta.filter(concept => concept[2][0] == "Entity").forEach(concept => alchemized.entities[concept[0].id] = concept[1]);
-			let taxonomy = meta.filter(concept => concept[2][0] == "Taxonomy").forEach(concept => alchemized.taxonomy[concept[0].id] = concept[1]);
-			let keywords = meta.filter(concept => concept[2][0] == "Keyword").forEach(concept => alchemized.keywords[concept[0].id] = concept[1]);
+
+			meta
+				.filter(concept => concept[2][0] == "Concept")
+				.forEach(concept => alchemized.concepts[concept[0].properties.id] = parseFloat(concept[1]));
+
+			meta
+				.filter(concept => concept[2][0] == "Entity")
+				.forEach(concept => alchemized.entities[concept[0].properties.id] = parseFloat(concept[1]));
+
+			meta
+				.filter(concept => concept[2][0] == "Taxonomy")
+				.forEach(concept => alchemized.taxonomy[concept[0].properties.id] = parseFloat(concept[1]));
+
+			meta
+				.filter(concept => concept[2][0] == "Keyword")
+				.forEach(concept => alchemized.keywords[concept[0].properties.id] = parseFloat(concept[1]));
 
 			let score = 0;
 			let count = 0;
 			for(let concept of alchemy.concepts) {
-				if(concept.id in alchemized.concepts) {
+				if(concept.text in alchemized.concepts) {
 					count += 1;
-					score += (concept.score + alchemized.concepts[concept.id]) / 2;
+					score += (parseFloat(concept.relevance) + alchemized.concepts[concept.text]) / 2;
 				}
 			}
 
 			for(let concept of alchemy.entities) {
-				if(concept.id in alchemized.entities) {
+				if(concept.text in alchemized.entities) {
 					count += 1;
-					score += (concept.score + alchemized.entities[concept.id]) / 2;
+					score += (parseFloat(concept.relevance) + alchemized.entities[concept.text]) / 2;
 				}
 			}
 
 			for(let concept of alchemy.keywords) {
-				if(concept.id in alchemized.keywords) {
+				if(concept.text in alchemized.keywords) {
 					count += 1;
-					score += (concept.score + alchemized.keywords[concept.id]) / 2;
+					score += (parseFloat(concept.relevance) + alchemized.keywords[concept.text]) / 2;
 				}
 			}
 			let final_score = count * score;
+			console.log(final_score, max)
 
 			if(final_score > max && new_message.properties.text.indexOf('respond for') == -1) {
 				max = final_score;
@@ -68,7 +86,7 @@ function* onMessage(message) {
 		}
 
 		if(max_message)
-			return {text: max_message};
+			return { text: max_message };
 	})
 	.catch(err => {
 		session.close();
