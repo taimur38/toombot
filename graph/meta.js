@@ -31,7 +31,7 @@ const annotate = message => {
 
 const mentionize = message => {
 
-	if(message.mentions.length == 0) {
+	if(message.mentions == undefined || message.mentions.length == 0) {
 		return Promise.resolve(false);
 	}
 
