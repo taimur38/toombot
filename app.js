@@ -21,7 +21,7 @@ const slackClean = message => {
 	let mentions = undefined;
 	if(message.text) {
 		const ats = message.text.match(/@([^<>]+)/g);
-		mentions = ats && ats.length > 0 && ats.map(uid => rtm.dataStore.getUserById(uid.slice(1)));
+		mentions = ats && ats.length > 0 && ats.map(uid => rtm.dataStore.getUserById(uid.slice(1))).filter(r => r);
 	}
 
 	return {
