@@ -8,10 +8,10 @@ function* onMessage(message) {
 	const user = message.mentions[0].id;
 
 	const transaction = `
-		MATCH (c:SlackChannel {id: '${channel}'})<--(m: Message)<--(u1: User {id: '${user}'})
+		MATCH (c:SlackChannel)<--(m: Message)<--(u1: User {id: '${user}'})
 		WITH m
-		MATCH (c:SlackChannel {id: '${channel}'})<--(n: Message)<--(u2: User {id: '${user}'})
-		WHERE toFloat(m.timestamp) - toFloat(n.timestamp) > 0 and toFloat(m.timestamp) - toFloat(n.timestamp) < 30
+		MATCH (c:SlackChannel)<--(n: Message)<--(u2: User {id: '${user}'})
+		WHERE toFloat(m.timestamp) - toFloat(n.timestamp) > 0 and toFloat(m.timestamp) - toFloat(n.timestamp) < 30 and u2.id <> '${user}'
 		WITH m, n
 		MATCH (n)-[r1:HAS_ENTITY|HAS_TAXONOMY|HAS_KEYWORD|HAS_CONCEPT]-(c)
 		RETURN n as message, collect(distinct([c, r1.score, labels(c)])) as concepts
