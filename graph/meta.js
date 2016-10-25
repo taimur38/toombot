@@ -40,6 +40,8 @@ const mentionize = message => {
 
 	for(let i = 0; i < message.mentions.length; i++) {
 		const mention = message.mentions[0];
+		if(!mention || !mention.id)
+			continue;
 		tx.run(`
 			MATCH (m:Message {id: {m_id} })
 			MERGE (u:User {id: {u_id} })
