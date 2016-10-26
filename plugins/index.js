@@ -9,7 +9,7 @@ const plugins = [
 	require('./update-nlc'),
 	require('./search'),
 	require('./hello'),
-	require('./news-command'),
+	require('./hey-toombots'),
 	require('./help-me-respond'),
 	require('./opinionate')
 	//wrapper(require('./reddit-enrichment').onMessage),
