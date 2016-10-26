@@ -67,6 +67,7 @@ function getFact(message) {
 	})
 	.then(res => {
 		const record = res.records[0]
+		session.close();
 		if(!record) {
 			return false;
 		}
@@ -74,6 +75,7 @@ function getFact(message) {
 		return { text: `I learned ${record.get('fact')} from ${record.get('username')}`}
 	})
 	.catch(err => {
+		session.close();
 		console.error(err)
 	})
 }
