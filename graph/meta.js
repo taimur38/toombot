@@ -8,18 +8,84 @@ const graph = message => {
 		companize(message),
 		linkize(message),
 		annotate(message),
-		mentionize(message)
+		mentionize(message),
+		factize(message)
 	])
 	.catch(err => {
 		console.error('promise all error in meta', err)
 	})
 }
 
+const factize = message => {
+
+	if(!message.alchemy || message.alchemy.relations.length == 0)
+		return Promise.resolve(false);
+
+	const session = driver.session();
+	const tx = session.beginTransaction();
+
+	const facts = message.alchemy.relations.filter(m => m.action && m.action.lemmatized == 'be' && m.subject && m.object);
+
+	const promises = [];
+	for(let fact of facts) {
+		const text = `${fact.subject.text} ${fact.action.text} ${fact.object.text}`;
+		const p = tx.run(`
+			MATCH (m:Message {id: {m_id} })
+			MERGE (f:Fact {id: {f_id} })
+				SET f.subject = {f_subject}, f.action = {f_action}, f.object = {f_object}
+			MERGE (m)-[r:HAS_FACT]->(f)
+		`, {
+			m_id: message.id,
+			f_id: text,
+			f_subject: fact.subject.text,
+			f_action: fact.action.text,
+			f_object: fact.object.text
+		})
+		.then(() => {
+			const keywords = [...(fact.subject.keywords || []), ...(fact.object.keywords || [])];
+			const entities = [...(fact.subject.entities || []), ...(fact.object.entities || [])];
+
+			const kw_promises = keywords.map(kw => tx.run(`
+					MATCH (f:Fact {id: {f_id} })
+					MERGE (k:Keyword {id: {k_id}, types: {k_type} })
+
+					MERGE (f)-[r:HAS_KEYWORD {score: {k_score} }]->(k)
+				`, {
+					f_id: text,
+					k_id: kw.text,
+					k_type: kw.knowledgeGraph ? kw.knowledgeGraph.typeHierarchy : '',
+					k_score: kw.relevance || 1
+				}).catch(err => console.error('tx run error factize keywordize', fact, err)))
+			const e_promises = entities.map(e => tx.run(`
+					MATCH (f:Fact {id: {f_id} })
+					MERGE (e:Entity {id: {e_id}, types: {e_type} })
+					MERGE (f)-[r:HAS_ENTITY {score: {e_score} }]->(e)
+				`, {
+					f_id: text,
+					e_id: e.text,
+					e_type: e.knowledgeGraph ? e.knowledgeGraph.typeHierarchy : '',
+					k_score: kw.relevance || 1
+				}).catch(err => console.error('tx run error factize keywordize', fact, err)))
+
+			return Promise.all([...kw_promises, ...e_promises])
+		})
+		.catch(err => console.error('tx run error factize', fact, err))
+
+		promises.push(p);
+	}
+
+	return Promise.all(promises)
+		.then(() => tx.commit())
+		.then(() => session.close())
+		.catch(err => { console.error('factize commit err', err); tx.commit(); session.close(); })
+
+}
+
 const annotate = message => {
 	const session = driver.session()
 	const tx = session.beginTransaction();
 
-	const transactions = toombatize(message);
+	const transactions = toombatize.annotate(message);
 
 	for(let trans of transactions)
 		tx.run(trans).catch(err => console.error('toombatize tx run error'));

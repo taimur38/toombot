@@ -163,4 +163,10 @@ const knowledgeGraphize = (rootType, rootId, types) => {
 	return transactions;
  }
 
-module.exports = annotate;
+module.exports = {
+	annotate,
+	entitize,
+	conceptize,
+	taxonimize,
+	keywordize
+}
