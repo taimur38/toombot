@@ -67,6 +67,9 @@ function getFact(message) {
 	})
 	.then(res => {
 		const record = res.records[0]
+		if(!record) {
+			return false;
+		}
 		console.log(record.get('username'), record.get('fact'))
 		return { text: `I learned ${record.get('fact')} from ${record.get('username')}`}
 	})
