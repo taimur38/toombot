@@ -64,7 +64,7 @@ const factize = message => {
 					f_id: text,
 					e_id: e.text,
 					e_type: e.knowledgeGraph ? e.knowledgeGraph.typeHierarchy : '',
-					k_score: kw.relevance || 1
+					e_score: e.relevance || 1
 				}).catch(err => console.error('tx run error factize keywordize', fact, err)))
 
 			return Promise.all([...kw_promises, ...e_promises])
