@@ -127,8 +127,8 @@ function wiki(response) {
 }
 
 function thoughts(response) {
-	let concepts = message.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
-	let entities = message.context.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
+	let concepts = response.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
+	let entities = response.context.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
 
 	let concept_merge = [...entities, ...concepts].slice(0,2).reduce((all, c) => `${all} ${c.text}`, '');
 
@@ -155,7 +155,7 @@ function thoughts(response) {
 				.slice(0,10);
 		})
 		.then(flattened_results               => Promise.all(flattened_results.map(analyzer.analyze)))
-		.then(analyzed_results                => analyzer.rank(analyzed_results, message, analyzer.thresholds))
+		.then(analyzed_results                => analyzer.rank(analyzed_results, response, analyzer.thresholds))
 		.then(ranked                          => ranked[0])
 		.then(winner                          => winner == undefined ? false : {text: winner.message})
 		.catch(err => {
