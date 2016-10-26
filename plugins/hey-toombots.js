@@ -80,7 +80,7 @@ function getFact(message) {
 	})
 }
 
-function specificThoughts(message) {
+function specificThoughts(response) {
 	let topic = response.text.split("think about")[1].replace("?", "");
 	return session.get(`/search.json?q=${topic}`)
 		.then(rsp => rsp.data)
@@ -121,12 +121,12 @@ function specificThoughts(message) {
 		})
 }
 
-function wiki(message) {
+function wiki(response) {
 	let topic = response.text.split("what is ")[1].replace("?", "").replace(" ", "%20");
 	return {text: "https://en.wikipedia.org/wiki/" + topic};
 }
 
-function thoughts(message) {
+function thoughts(response) {
 	let concepts = message.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
 	let entities = message.context.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
 
