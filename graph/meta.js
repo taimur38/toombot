@@ -88,7 +88,7 @@ const annotate = message => {
 	const transactions = toombatize.annotate(message);
 
 	for(let trans of transactions)
-		tx.run(trans).catch(err => console.error('toombatize tx run error'));
+		tx.run(trans).catch(err => console.error('toombatize tx run error', err));
 
 	return tx.commit()
 		.then(() => session.close())
