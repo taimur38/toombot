@@ -20,7 +20,7 @@ export async function dispatch(emitter, message) {
 	for(let minions of scheduled_minions) {
 		const responses = await Promise.all(
 			minions
-				.filter(m => m.requirements.every(req => processed_message[m.req])
+				.filter(m => m.requirements.every(req => processed_message[m.req]))
 				.map(m => {
 					const output = m.generator.next(processed_message);
 					return output.value.then(r => ({ value: r, done: output.done }))
