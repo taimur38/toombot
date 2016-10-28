@@ -1,6 +1,8 @@
-import { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } from '@slack/client';
-import Rx from 'rx';
+import { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } from '@slack/client'
+import Rx from 'rx'
 import uuid from 'uuid'
+import EventEmitter from 'events'
+
 
 import preprocess from './preprocessors';
 import plugins from './plugins';
@@ -50,6 +52,62 @@ const reaction_added = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_ADDED)
 const reaction_removed = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_REMOVED)
 const message_source = Rx.Observable.fromEvent(rtm, RTM_EVENTS.MESSAGE)
 
+class MyEmitter extends EventEmitter {};
+
+const myEmitter = new MyEmitter();
+rtm.on(RTM_EVENTS.MESSAGE, message => {
+	if(message.type != 'message' || message.subtype) {
+		return;
+	}
+	console.log(message.text)
+	const cleaned = slackClean(message);
+
+	minions.dispatch(myEmitter, message)
+})
+
+myEmitter.on('send', async function({response, message}) {
+
+	if(message.user.name == 'toombot') {
+		return;
+	}
+
+	try {
+		const isRepost = await graph.isRepost({ response, message });
+
+		if(isRepost) {
+			console.log('repost', response)
+			return;
+		}
+	} catch(e) {
+		console.error('repost error', e)
+	}
+
+	try {
+		const classification = await nlc.classify('toombot-output', r.response)
+
+		console.log(classification)
+
+	} catch(e) {
+		console.error('nlc error', e)
+	}
+
+	const slackResponse = await sendMessage(response, message.channel.id);
+
+	minions.dispatch(slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
+});
+
+function sendMessage(text, channel_id) {
+
+	return new Promise((resolve, reject) => {
+		rtm.sendMessage(text, channel_id, (err, msg) => {
+			if(err) {
+				return reject(err)
+			}
+			resolve(msg)
+		})
+	})
+}
+
 reaction_added
 	.map(slackClean)
 	.subscribe(msg => { graph.reaction.add(msg); }, err => console.error('reaction error', err))
@@ -57,40 +115,3 @@ reaction_added
 reaction_removed
 	.map(slackClean)
 	.subscribe(msg => { graph.reaction.remove(msg); }, err => console.error('reaction error', err))
-
-const processed = message_source
-	.filter(message => message.type == 'message' && !message.subtype)
-	.tap(message => console.log(message.text))
-	.map(slackClean)
-	.flatMap(preprocess)
-	.tap(message => graph.message(message))
-
-const output = processed
-	.filter(message => message.user.name != 'toombot')
-	.flatMap(message => Promise.all(plugins(message)))
-	.flatMap(r => { /*console.log(r);*/ return r; }) // flattens array
-	.filter(r => r && r.response)
-	.flatMap(r => graph.isRepost(r).then(isRepost => isRepost ? false : r ))
-	.filter(r => r)
-	.tap(r => {
-		nlc.classify('toombot-output', r.response)
-			.then(res => console.log(res))
-			.catch(err => console.error('output nlc error', err))
-	})
-	.flatMap(r => {
-		return new Promise((resolve, reject) => {
-			rtm.sendMessage(r.response, r.message.channel.id, (err, msg) => {
-				if(err) {
-					return reject(err)
-				}
-				resolve(msg)
-			})
-		})
-	})
-	.tap(msg => console.log('output', msg))
-
-output
-	.map(slackClean)
-	.flatMap(preprocess)
-	.tap(graph.message)
-	.subscribe(msg => {}, err => console.error('erorororor', err), () => console.log('completed'))
