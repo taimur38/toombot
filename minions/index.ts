@@ -1,5 +1,10 @@
+import * as alchemy from './alchemize';
+import * as hello from './hello';
+import { EventEmitter } from 'events';
 
 const global_minions = [
+	alchemy,
+	hello,
 	//require('shit')
 ]
 /* array of objects with:
@@ -12,7 +17,7 @@ const global_minions = [
 
 const minion_map = new Map(); //
 
-export async function dispatch(emitter, message) {
+export async function dispatch(emitter : EventEmitter, message : any) {
 
 	const scheduled_minions = schedule(message);
 
@@ -20,14 +25,14 @@ export async function dispatch(emitter, message) {
 	for(let minions of scheduled_minions) {
 		const responses = await Promise.all(
 			minions
-				.filter(m => m.requirements.every(req => processed_message[m.req])
+				.filter(m => m.requirements.every(req => processed_message[m.req]))
 				.map(m => {
 					const output = m.generator.next(processed_message);
 					return output.value.then(r => ({ value: r, done: output.done }))
-				})
+				}))
 
 		const senders = responses.filter(x => x.value.send);
-		senders.map(msg => emitter.emit('send', {
+		senders.forEach(msg => emitter.emit('send', {
 			response: msg.value.text,
 			message
 		}));
@@ -35,7 +40,9 @@ export async function dispatch(emitter, message) {
 		// pass processed_message to next round of minions
 		processed_message = responses
 			.filter(x => !x.value.send)
-			.reduce((agg, curr) => ({ ...agg, ...curr }), {})
+			.reduce((agg, curr) => {
+				return Object.assign({}, agg, curr);
+			}, {})
 	}
 }
 
@@ -53,6 +60,7 @@ function schedule(message) {
 				const minion = minion.get(key);
 				if(!minion.generator.done && minion.filter(message)) {
 					return { generator: minion.generator, requirements: minion.requirements, key: m_key } // aka return minion
+				}
 
 				minion_map.delete(key);
 			}
