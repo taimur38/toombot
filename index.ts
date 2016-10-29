@@ -1,12 +1,9 @@
-import { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } from '@slack/client'
-import Rx from 'rx'
-import uuid from 'uuid'
-import EventEmitter from 'events'
+import { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } from '@slack/client';
+import * as uuid from 'node-uuid'
+import { EventEmitter } from 'events'
 
-
-import preprocess from './preprocessors';
-import plugins from './plugins';
 import graph from './graph';
+import * as minions from './minions';
 
 import nlc from './lib/nlc';
 
@@ -18,16 +15,15 @@ const rtm = new RtmClient(token, {
 
 rtm.start();
 
-const slackClean = message => {
+const slackClean = (message : any) => {
 
 	let mentions = undefined;
 	if(message.text) {
 		const ats = message.text.match(/@([^<>]+)/g);
-		mentions = ats && ats.length > 0 && ats.map(uid => rtm.dataStore.getUserById(uid.slice(1))).filter(r => r);
+		mentions = ats && ats.length > 0 && ats.map((uid : any) => rtm.dataStore.getUserById(uid.slice(1))).filter((r : any) => r);
 	}
 
-	return {
-		...message,
+	return Object.assign({}, message, {
 		user: rtm.dataStore.getUserById(message.user),
 		timestamp: new Date(parseFloat(message.ts) * 1000),
 		mentions,
@@ -36,10 +32,10 @@ const slackClean = message => {
 			rtm.dataStore.getGroupById(message.channel) ||
 			rtm.dataStore.getDMById(message.channel),
 		id: uuid.v1()
-	}
+	})
 }
 
-rtm.on(RTM_EVENTS.DISCONNECT, err => {
+rtm.on(RTM_EVENTS.DISCONNECT, (err : any) => {
 	console.log('disconnected', err);
 	console.log('reconnecting in 3 seconds...');
 	setTimeout(() => {
@@ -48,14 +44,10 @@ rtm.on(RTM_EVENTS.DISCONNECT, err => {
 	}, 3000);
 })
 
-const reaction_added = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_ADDED)
-const reaction_removed = Rx.Observable.fromEvent(rtm, RTM_EVENTS.REACTION_REMOVED)
-const message_source = Rx.Observable.fromEvent(rtm, RTM_EVENTS.MESSAGE)
-
 class MyEmitter extends EventEmitter {};
 
 const myEmitter = new MyEmitter();
-rtm.on(RTM_EVENTS.MESSAGE, message => {
+rtm.on(RTM_EVENTS.MESSAGE, (message : any) => {
 	if(message.type != 'message' || message.subtype) {
 		return;
 	}
@@ -65,7 +57,7 @@ rtm.on(RTM_EVENTS.MESSAGE, message => {
 	minions.dispatch(myEmitter, message)
 })
 
-myEmitter.on('send', async function({response, message}) {
+myEmitter.on('send', async function(response : string, message : any) {
 
 	if(message.user.name == 'toombot') {
 		return;
@@ -83,7 +75,7 @@ myEmitter.on('send', async function({response, message}) {
 	}
 
 	try {
-		const classification = await nlc.classify('toombot-output', r.response)
+		const classification = await nlc.classify('toombot-output', response)
 
 		console.log(classification)
 
@@ -93,13 +85,13 @@ myEmitter.on('send', async function({response, message}) {
 
 	const slackResponse = await sendMessage(response, message.channel.id);
 
-	minions.dispatch(slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
+	minions.dispatch(myEmitter, slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
 });
 
-function sendMessage(text, channel_id) {
+function sendMessage(text : string, channel_id : string) {
 
 	return new Promise((resolve, reject) => {
-		rtm.sendMessage(text, channel_id, (err, msg) => {
+		rtm.sendMessage(text, channel_id, (err : Error, msg : any) => {
 			if(err) {
 				return reject(err)
 			}
@@ -108,10 +100,12 @@ function sendMessage(text, channel_id) {
 	})
 }
 
-reaction_added
-	.map(slackClean)
-	.subscribe(msg => { graph.reaction.add(msg); }, err => console.error('reaction error', err))
+rtm.on(RTM_EVENTS.REACTION_ADDED, (reaction : any) => {
+	const cleaned = slackClean(reaction);
+	graph.reaction.add(cleaned);
+})
 
-reaction_removed
-	.map(slackClean)
-	.subscribe(msg => { graph.reaction.remove(msg); }, err => console.error('reaction error', err))
+rtm.on(RTM_EVENTS.REACTION_REMOVED, (reaction : any) => {
+	const cleaned = slackClean(reaction);
+	graph.reaction.remove(reaction);
+})

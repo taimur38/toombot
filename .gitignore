@@ -2,3 +2,4 @@ node_modules
 npm-debug.log
 set-env.sh
 Mod-Dockerfile
+build
