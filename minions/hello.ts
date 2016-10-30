@@ -2,13 +2,16 @@ import { MinionModule } from '../types';
 
 function* onMessage(message : any) : Iterator<Promise<any>> {
 
-	yield Promise.resolve({
+	const response = yield Promise.resolve({
 		filter: (msg : any) : boolean => true,
-		text: 'hello'
+		text: 'hello',
+		send: true,
+		requirements: ['alchemy']
 	})
 
 	return Promise.resolve({
-		text: "good"
+		text: `${response.alchemy.concepts.length} alchemy concepts`,
+		send: true
 	});
 }
 

@@ -51,10 +51,10 @@ rtm.on(RTM_EVENTS.MESSAGE, (message : any) => {
 	if(message.type != 'message' || message.subtype) {
 		return;
 	}
-	console.log(message.text)
+	console.log('text', message.text)
 	const cleaned = slackClean(message);
 
-	minions.dispatch(myEmitter, message)
+	minions.dispatch(myEmitter, cleaned)
 })
 
 myEmitter.on('send', async function(response : string, message : any) {
@@ -86,7 +86,8 @@ myEmitter.on('send', async function(response : string, message : any) {
 
 	const slackResponse = await sendMessage(response, message.channel.id);
 
-	minions.dispatch(myEmitter, slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
+	graph.message(slackClean(slackResponse));
+	// minions.dispatch(myEmitter, slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
 });
 
 function sendMessage(text : string, channel_id : string) {

@@ -18,23 +18,45 @@ export async function dispatch(emitter : EventEmitter, message : any) {
 	for(let minions of scheduled_minions) {
 		const responses : any[] = await Promise.all(
 			minions
-				.filter(m => m.requirements.every(req => processed_message[req]))
+				.filter(m => m.requirements.every(req => {
+					return processed_message[req];
+				}))
 				.map(m => {
 					const output = m.generator.next(processed_message);
-					return output.value.then((r : Object) => ({ value: r, done: output.done }))
+					return output.value.then((r : Object) => ({
+						value: r,
+						done: output.done,
+						minion: m
+					}))
 				}))
 
 		const senders = responses.filter(x => x.value.send);
-		senders.forEach(msg => emitter.emit('send', {
-			response: msg.value.text,
+		senders.forEach(msg => emitter.emit('send',
+			msg.value.text,
 			message
-		}));
+		));
+
+		// update map
+		responses.forEach((response : any) => {
+
+			const m_key = `${message.channel.id}-${response.minion.key}`;
+			if(response.done) {
+				minion_map.delete(m_key)
+			} else  {
+				minion_map.set(m_key, {
+					generator: response.minion.generator as Iterator<Promise<any>>,
+					requirements: response.value.requirements || [] as string[],
+					filter: response.value.filter,
+					key: response.minion.key
+				})
+			}
+		})
 
 		// pass processed_message to next round of minions
 		processed_message = responses
 			.filter(x => !x.value.send)
 			.reduce((agg : any, curr : any) => {
-				return Object.assign({}, agg, curr);
+				return Object.assign({}, agg, curr.value);
 			}, {})
 	}
 }
@@ -47,6 +69,7 @@ function schedule(message : any) {
 	const normalized : ActiveMinion[] = [];
 	global_minions
 		.forEach((m : MinionModule) : void => {
+
 			const m_key = m.key(message)
 			const key = `${message.channel.id}-${m_key}`
 
@@ -62,7 +85,8 @@ function schedule(message : any) {
 
 			if(m.filter(message)) {
 				const generator = m.onMessage(message);
-				normalized.push({ generator, requirements: m.requirements, key: m_key, filter: m.filter })
+				// console.log(generator.next())
+				normalized.push({ generator : generator, requirements: m.requirements, key: m_key, filter: m.filter })
 				return;
 			}
 		})
@@ -72,7 +96,7 @@ function schedule(message : any) {
 
 	const calculate = (service_key : string) : number => {
 		if(orders.has(service_key))
-			return orders[service_key];
+			return orders.get(service_key);
 
 		orders.set(service_key, -100);
 
@@ -100,7 +124,7 @@ function schedule(message : any) {
 	normalized.forEach(m => calculate(m.key));
 
 	let scheduled_minions : ActiveMinion[][] = [];
-	for(let service_key in orders) {
+	for(let service_key of orders.keys()) {
 		let curr : ActiveMinion[] = [];
 		if(orders.get(service_key) < scheduled_minions.length) {
 			curr = scheduled_minions[orders.get(service_key)] || [];

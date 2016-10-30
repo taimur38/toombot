@@ -2,10 +2,10 @@ import * as axios from 'axios';
 import blacklist from './blacklist';
 import moment = require('moment') //sorry
 
-const auth = require('../constants');
+import { alchemy_key, alchemy_keys } from '../constants';
 
-var key = auth.alchemy_key;
-let keys = auth.alchemy_keys;
+var key = alchemy_key;
+let keys = alchemy_keys;
 const blacklist_str = "(" + blacklist.join(")|(") + ")";
 const blacklist_regex = new RegExp(blacklist_str);
 
