@@ -30,7 +30,7 @@ const bot = {
 	name: process.env.BOT_NAME
 }
 
-module.exports = {
+export default {
 	alchemy_key,
 	alchemy_keys,
 	conceptInsights,

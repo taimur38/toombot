@@ -1,21 +1,14 @@
-import * as alchemy from './alchemize';
-import * as hello from './hello';
+import alchemy from './alchemize';
+import hello from './hello';
 import { EventEmitter } from 'events';
+import { MinionModule, ActiveMinion } from '../types';
 
-const global_minions = [
+const global_minions : MinionModule[] = [
 	alchemy,
-	hello,
-	//require('shit')
+	hello
 ]
-/* array of objects with:
-{
-	key: msg => string,
-	onMessage: msg => generator, where generator.value returns {
-	Promise<{send: true|false|undefined, [key]: whatever, filter: fn(msg) => bool}> }
-}
-*/
 
-const minion_map = new Map(); //
+const minion_map = new Map<string, ActiveMinion>(); //
 
 export async function dispatch(emitter : EventEmitter, message : any) {
 
@@ -23,12 +16,12 @@ export async function dispatch(emitter : EventEmitter, message : any) {
 
 	let processed_message = message;
 	for(let minions of scheduled_minions) {
-		const responses = await Promise.all(
+		const responses : any[] = await Promise.all(
 			minions
-				.filter(m => m.requirements.every(req => processed_message[m.req]))
+				.filter(m => m.requirements.every(req => processed_message[req]))
 				.map(m => {
 					const output = m.generator.next(processed_message);
-					return output.value.then(r => ({ value: r, done: output.done }))
+					return output.value.then((r : Object) => ({ value: r, done: output.done }))
 				}))
 
 		const senders = responses.filter(x => x.value.send);
@@ -40,26 +33,28 @@ export async function dispatch(emitter : EventEmitter, message : any) {
 		// pass processed_message to next round of minions
 		processed_message = responses
 			.filter(x => !x.value.send)
-			.reduce((agg, curr) => {
+			.reduce((agg : any, curr : any) => {
 				return Object.assign({}, agg, curr);
 			}, {})
 	}
 }
 
-function schedule(message) {
+function schedule(message : any) {
 	// the context a minion is available to cannot change over time
 	// but the requirements list can.
 
 	// this will either pass existing enerator in minion_map or initialize new generator if doesnt exist.
-	const normalized = global_minions
-		.map(m => {
+	const normalized : ActiveMinion[] = [];
+	global_minions
+		.forEach((m : MinionModule) : void => {
 			const m_key = m.key(message)
 			const key = `${message.channel.id}-${m_key}`
 
 			if(minion_map.has(key)) {
-				const minion = minion.get(key);
-				if(!minion.generator.done && minion.filter(message)) {
-					return { generator: minion.generator, requirements: minion.requirements, key: m_key } // aka return minion
+				const minion = minion_map.get(key);
+				if(minion.filter(message)) {
+					normalized.push(minion) // aka return minion
+					return;
 				}
 
 				minion_map.delete(key);
@@ -67,24 +62,24 @@ function schedule(message) {
 
 			if(m.filter(message)) {
 				const generator = m.onMessage(message);
-				return { generator, requirements: m.requirements, key: m_key }
+				normalized.push({ generator, requirements: m.requirements, key: m_key, filter: m.filter })
+				return;
 			}
 		})
-		.filter(n => n)
 
 	// schedule normalized minions based on requirements. return array of arrays of normalized minions
-	let orders = {};
+	let orders = new Map<string, number>();
 
-	const calculate = (service_key) => {
-		if(orders[service_key])
+	const calculate = (service_key : string) : number => {
+		if(orders.has(service_key))
 			return orders[service_key];
 
-		orders[service_key] = -100;
+		orders.set(service_key, -100);
 
 		const reqs = normalized.find(m => m.key == service_key).requirements;
 
 		if(!reqs || reqs.length == 0) {
-			orders[service_key] = 0;
+			orders.set(service_key, 0)
 			return 0;
 		}
 
@@ -98,20 +93,20 @@ function schedule(message) {
 			max_req = Math.max(max_req, dependency_order + 1);
 		}
 
-		orders[service_key] = max_req;
+		orders.set(service_key, max_req)
 		return max_req;
 	}
 
 	normalized.forEach(m => calculate(m.key));
 
-	let scheduled_minions = [];
+	let scheduled_minions : ActiveMinion[][] = [];
 	for(let service_key in orders) {
-		let curr = [];
-		if(orders[service_key] < scheduled_minions.length) {
-			curr = scheduled_minions[orders[service_key]] || [];
+		let curr : ActiveMinion[] = [];
+		if(orders.get(service_key) < scheduled_minions.length) {
+			curr = scheduled_minions[orders.get(service_key)] || [];
 		}
 		curr.push(normalized.find(n => n.key == service_key));
-		scheduled_minions[orders[service_key]] = curr;
+		scheduled_minions[orders.get(service_key)] = curr;
 	}
 
 	return scheduled_minions;

@@ -1,6 +1,6 @@
-const axios = require('axios');
-const blacklist = require('./blacklist.json');
-const moment = require('moment') //sorry
+import * as axios from 'axios';
+import blacklist from './blacklist';
+import moment = require('moment') //sorry
 
 const auth = require('../constants');
 
@@ -31,7 +31,7 @@ function rotate_key() {
 }
 
 
-function _post(contentType, endpoint, content, args, rotatable) {
+function _post(contentType : string, endpoint : string, content : string, args? : any, rotatable? : boolean) : Promise<any> {
 
 	rotatable = rotatable || true;
 
@@ -47,43 +47,46 @@ function _post(contentType, endpoint, content, args, rotatable) {
 		}
 	};
 
-	return axios.post(_urlBases[contentType] + endpoint, urlEncode(body), config)
-		.then(res => {
-			let parsed = res.data;
-			if(parsed.status == 'ERROR') {
-				if(parsed.statusInfo == 'daily-transaction-limit-exceeded' && rotatable) {
-					rotate_key()
-					return _post(contentType, endpoint, content, args, false)
+	return new Promise((resolve,reject) => {
+		axios.post(_urlBases[contentType] + endpoint, urlEncode(body), config)
+			.then((res : any) : any => {
+				let parsed : any = res.data;
+				if(parsed.status == 'ERROR') {
+					if(parsed.statusInfo == 'daily-transaction-limit-exceeded' && rotatable) {
+						rotate_key()
+						return _post(contentType, endpoint, content, args, false)
+					}
+					return reject(new Error(parsed.statusInfo));
 				}
-				return Promise.reject(new Error(parsed.statusInfo));
-			}
-			return parsed;
-		});
+				return resolve(parsed);
+			});
+		})
 }
 
-function getRelations(content, contentType) {
+function getRelations(content : string, contentType : string) : axios.Promise {
 	contentType = contentType || "text";
 
-	return _post(contentType, "GetRelations", content, {}).then(data => data.relations)
+	return _post(contentType, "GetRelations", content, {})
+		.then((data : any) => data.relations)
 }
 
-function getKeywords(content, contentType, sanitize) {
+function getKeywords(content : string, contentType : string, sanitize : boolean) {
 	contentType = contentType || "text";
 	sanitize = sanitize || false;
 
 	return _post(contentType, "GetRankedKeywords", content, {
 		keywordExtractMode: 'normal',
 		sentiment: 1
-	}).then(data =>  {
+	}).then((data : any) =>  {
 		let kw = data.keywords || [];
 		return sanitize ? kw.filter(sanitizer) : kw
 	})
 
 }
 
-function getImageKeywords(content) {
+function getImageKeywords(content : string) {
 	return _post("url", "GetRankedImageKeywords", content)
-		.then(data =>  {
+		.then((data : any) =>  {
 
 			let kw = data.imageKeywords || [];
 			return kw;
@@ -91,11 +94,23 @@ function getImageKeywords(content) {
 
 }
 
-function sanitizer(content) {
+function sanitizer(content : any) {
 	return !('text' in content && blacklist_regex.test(content['text']));
 }
 
-function getAllTheThings(content, contentType, sanitize) {
+export interface AllTheThings {
+	concepts: any[],
+	entities: any[],
+	keywords: any[],
+	taxonomy: any[],
+	emotions: any,
+	relations: any[],
+	sentiment: any,
+	imageKeywords: any[],
+	dates: any[]
+}
+
+export function getAllTheThings(content : string, contentType? : string, sanitize? : boolean) : Promise<AllTheThings> {
 	sanitize = sanitize || false;
 	contentType = contentType || 'text';
 
@@ -109,7 +124,7 @@ function getAllTheThings(content, contentType, sanitize) {
 		language: "english",
 		keywordExtractMode: 1,
 		anchorDate: moment().format('YYYY-MM-DD hh:mm:ss')
-	}).then(data => {
+	}).then((data : any) : AllTheThings => {
 		return {
 			concepts: data.concepts ? data.concepts.filter(sanitizer) : [],
 			entities: data.entities ? data.entities.filter(sanitizer) : [],
@@ -125,7 +140,7 @@ function getAllTheThings(content, contentType, sanitize) {
 }
 
 // why
-let urlEncode = obj => {
+let urlEncode = (obj : Object) => {
 	let str = [];
 	for(let p in obj) {
 		str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
@@ -133,7 +148,7 @@ let urlEncode = obj => {
 	return str.join("&");
 };
 
-module.exports = {
+export default {
 	getAllTheThings,
 	getKeywords,
 	getImageKeywords,

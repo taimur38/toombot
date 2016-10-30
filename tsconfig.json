@@ -5,10 +5,12 @@
 		"noImplicitReturns": true,
 		"pretty": true,
 		"target": "es6",
-		"outDir": "build"
+		"outDir": "build",
+		"allowJs": true
 	},
 	"include": [
-		"**/*"
+		"**/*",
+		"**/*.json"
 	],
 	"exclude": [
 		"node_modules",

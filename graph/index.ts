@@ -1,9 +1,10 @@
 const neo4j = require('neo4j-driver').v1;
+
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
-const meta = require('./meta');
+import meta from './meta';
 
-const onMessage = message => {
+const onMessage = (message : any) => {
 	const session = driver.session();
 
 	session.run(`
@@ -38,15 +39,15 @@ const onMessage = message => {
 		c_id: message.channel.id,
 		c_name: message.channel.name || ''
 	})
-	.then(res => meta.graph(message))
-	.catch(err => {
+	.then((res : any) => meta.graph(message))
+	.catch((err : Error) => {
 		console.error('errrr', err)
 	})
 	.then(() => session.close())
 }
 
-module.exports = {
+export default {
 	message: onMessage,
 	reaction: require('./reaction'),
 	isRepost: require('./repost')
-};
+}

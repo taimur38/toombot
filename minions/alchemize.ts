@@ -1,11 +1,15 @@
-const alchemy = require('../lib/alchemy');
+import * as alchemy from '../lib/alchemy';
 
-export function* onMessage(message : any) : Iterable<Promise<any>> {
+interface Response {
+	alchemy: alchemy.AllTheThings
+}
+
+function* onMessage(message : any) : Iterator<Promise<Response>> {
 
 	const text = message.text;
 
 	return alchemy.getAllTheThings(text)
-		.then((things : any) => ({ alchemy: things }))
+		.then(things => ({ alchemy: things }))
 		.catch((err : Error) => {
 			console.log("Preprocessor: " + err);
             console.log(err);
@@ -13,6 +17,13 @@ export function* onMessage(message : any) : Iterable<Promise<any>> {
 		})
 }
 
-export const key = (msg: any) => 'alchemy';
-export const requirements : string[] = [];
-export const filter = (msg: any) : boolean => true;
+const key = (msg: any) => 'alchemy';
+const requirements : string[] = [];
+const filter = (msg: any) : boolean => true;
+
+export default {
+	onMessage,
+	key,
+	requirements,
+	filter
+}

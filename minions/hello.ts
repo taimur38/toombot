@@ -1,5 +1,6 @@
-// must yield promises.
-export function* onMessage(message : any) : Iterable<Promise<any>> {
+import { MinionModule } from '../types';
+
+function* onMessage(message : any) : Iterator<Promise<any>> {
 
 	yield Promise.resolve({
 		filter: (msg : any) : boolean => true,
@@ -11,6 +12,15 @@ export function* onMessage(message : any) : Iterable<Promise<any>> {
 	});
 }
 
-export const key = (msg : any) : string => `${msg.user.id}-hello`
-export const requirements : string[] = [];
-export const filter = (msg : any) : boolean => true
+const key = (msg : any) : string => `${msg.user.id}-hello`
+const requirements : string[] = [];
+const filter = (msg : any) : boolean => true
+
+const mod : MinionModule = {
+	key,
+	onMessage,
+	requirements,
+	filter
+}
+
+export default mod;

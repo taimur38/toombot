@@ -1,11 +1,11 @@
-import { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } from '@slack/client';
+const { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } = require('@slack/client');
 import * as uuid from 'node-uuid'
 import { EventEmitter } from 'events'
 
 import graph from './graph';
 import * as minions from './minions';
 
-import nlc from './lib/nlc';
+// import nlc from './lib/nlc';
 
 const token = process.env.SLACK_TOKEN;
 
@@ -74,7 +74,7 @@ myEmitter.on('send', async function(response : string, message : any) {
 		console.error('repost error', e)
 	}
 
-	try {
+	/* try {
 		const classification = await nlc.classify('toombot-output', response)
 
 		console.log(classification)
@@ -82,6 +82,7 @@ myEmitter.on('send', async function(response : string, message : any) {
 	} catch(e) {
 		console.error('nlc error', e)
 	}
+	*/
 
 	const slackResponse = await sendMessage(response, message.channel.id);
 
