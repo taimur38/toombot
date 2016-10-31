@@ -81,7 +81,7 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 
 			if(minion_map.has(key)) {
 				const minion = minion_map.get(key);
-				if(minion.filter(message)) {
+				if(minion.filter === undefined || minion.filter(message)) {
 					normalized.push(minion) // aka return minion
 					return;
 				}
@@ -89,10 +89,10 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 				minion_map.delete(key);
 			}
 
-			if(m.filter(message)) {
+			if(m.filter === undefined || m.filter(message)) {
 				const generator = m.onMessage(message);
 				// console.log(generator.next())
-				normalized.push({ generator : generator, requirements: m.requirements, key: m_key, filter: m.filter })
+				normalized.push({ generator : generator, requirements: m.requirements || [], key: m_key, filter: m.filter })
 				return;
 			}
 		})
