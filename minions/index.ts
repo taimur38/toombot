@@ -1,34 +1,40 @@
 import alchemy from './alchemize';
 import hello from './hello';
 import { EventEmitter } from 'events';
-import { MinionModule, ActiveMinion } from '../types';
+import { MinionModule, ActiveMinion, SlackMessage } from '../types';
 
 const global_minions : MinionModule[] = [
 	alchemy,
 	hello
 ]
 
+interface FormattedMinionResponse {
+	value: any,
+	done: boolean,
+	minion: ActiveMinion
+}
+
 const minion_map = new Map<string, ActiveMinion>(); //
 
-export async function dispatch(emitter : EventEmitter, message : any) {
+export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
 	const scheduled_minions = schedule(message);
 
 	let processed_message = message;
 	for(let minions of scheduled_minions) {
-		const responses : any[] = await Promise.all(
+		const responses = await Promise.all<FormattedMinionResponse>(
 			minions
 				.filter(m => m.requirements.every(req => {
 					return processed_message[req];
 				}))
 				.map(m => {
 					const output = m.generator.next(processed_message);
-					return output.value.then((r : Object) => ({
+					return output.value.then((r : any) => ({
 						value: r,
 						done: output.done,
 						minion: m
 					}))
-				}))
+				}));
 
 		const senders = responses.filter(x => x.value.send);
 		senders.forEach(msg => emitter.emit('send',
@@ -37,7 +43,7 @@ export async function dispatch(emitter : EventEmitter, message : any) {
 		));
 
 		// update map
-		responses.forEach((response : any) => {
+		responses.forEach((response : { minion: ActiveMinion, done: boolean, value: any }) => {
 
 			const m_key = `${message.channel.id}-${response.minion.key}`;
 			if(response.done) {
@@ -61,7 +67,7 @@ export async function dispatch(emitter : EventEmitter, message : any) {
 	}
 }
 
-function schedule(message : any) {
+function schedule(message : SlackMessage) : ActiveMinion[][] {
 	// the context a minion is available to cannot change over time
 	// but the requirements list can.
 

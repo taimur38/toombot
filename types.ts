@@ -11,3 +11,30 @@ export interface ActiveMinion {
 	filter: (msg : any) => boolean,
 	key: string
 }
+
+export interface MinionResult {
+	filter?: (msg : any) => boolean,
+	text?: string,
+	send?: boolean,
+	requirements?: string[]
+}
+
+export interface SlackMessage {
+	id: string,
+	text: string,
+	user: SlackUser,
+	mentions: SlackUser[],
+	timestamp: Date,
+	channel: SlackChannel
+}
+
+export interface SlackUser {
+	name: string,
+	id: string,
+	email?: string
+}
+
+export interface SlackChannel {
+	name: string,
+	id: string
+}

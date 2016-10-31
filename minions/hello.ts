@@ -1,6 +1,6 @@
-import { MinionModule } from '../types';
+import { MinionModule, MinionResult } from '../types';
 
-function* onMessage(message : any) : Iterator<Promise<any>> {
+function* onMessage(message : any) : Iterator<Promise<MinionResult>> {
 
 	const response = yield Promise.resolve({
 		filter: (msg : any) : boolean => true,

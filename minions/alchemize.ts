@@ -1,10 +1,11 @@
 import * as alchemy from '../lib/alchemy';
+import { SlackMessage } from '../types';
 
 interface Response {
 	alchemy: alchemy.AllTheThings
 }
 
-function* onMessage(message : any) : Iterator<Promise<Response>> {
+function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
 	const text = message.text;
 
@@ -17,13 +18,9 @@ function* onMessage(message : any) : Iterator<Promise<Response>> {
 		})
 }
 
-const key = (msg: any) => 'alchemy';
-const requirements : string[] = [];
-const filter = (msg: any) : boolean => true;
-
 export default {
 	onMessage,
-	key,
-	requirements,
-	filter
+	key: (msg : SlackMessage) => 'alchemy',
+	requirements: [],
+	filter: (msg : SlackMessage) => true
 }
