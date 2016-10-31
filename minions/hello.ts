@@ -1,6 +1,6 @@
-import { MinionModule, MinionResult } from '../types';
+import { MinionModule, MinionResult, SlackMessage } from '../types';
 
-function* onMessage(message : any) : Iterator<Promise<MinionResult>> {
+function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 
 	const response = yield Promise.resolve({
 		filter: (msg : any) : boolean => true,

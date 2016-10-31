@@ -1,11 +1,15 @@
-import alchemy from './alchemize';
-import hello from './hello';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'events'
+
+import alchemy from './alchemize'
+import hello from './hello'
+import companies from './companies'
+
 import { MinionModule, ActiveMinion, SlackMessage } from '../types';
 
 const global_minions : MinionModule[] = [
 	alchemy,
-	hello
+	hello,
+	companies
 ]
 
 interface FormattedMinionResponse {

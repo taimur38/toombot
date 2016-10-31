@@ -7,7 +7,7 @@ const annotate = (message : any) => [
 ];
 
 const emotionalize = (nodeType : string, nodeId : string, emotions : Object) => {
-	let transactions = [];
+	let transactions : string[] = [];
 
 	for(let emotion in emotions) {
 		let score = emotions[emotion];

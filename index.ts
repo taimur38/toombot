@@ -4,7 +4,7 @@ import { EventEmitter } from 'events'
 
 import graph from './graph';
 import * as minions from './minions';
-import { SlackMessage } from './types';
+import { SlackMessage, SlackUser } from './types';
 
 // import nlc from './lib/nlc';
 
@@ -18,7 +18,7 @@ rtm.start();
 
 const slackClean = (message : any) : SlackMessage => {
 
-	let mentions = undefined;
+	let mentions : SlackUser;
 	if(message.text) {
 		const ats = message.text.match(/@([^<>]+)/g);
 		mentions = ats && ats.length > 0 && ats.map((uid : any) => rtm.dataStore.getUserById(uid.slice(1))).filter((r : any) => r);

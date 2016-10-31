@@ -14,8 +14,7 @@ function isRepost(arg: { response : string, message : any }) {
 	return session.run(`
 		MATCH (m:Message)-->(c:SlackChannel { id: { channel } })
 		WHERE m.text = { response } AND toFloat(m.timestamp) > { m_timestamp }
-		return m
-	`, {
+		return m`, {
 		channel: arg.message.channel.id,
 		response: arg.response,
 		m_timestamp: (now.getTime() - 5 * 60 * 1000) / 1000
