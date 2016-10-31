@@ -1,4 +1,4 @@
-["2",
+export default ["2",
 "A Good Thing",
 "A Little Bit",
 "A Little Bit Longer",

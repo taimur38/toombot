@@ -3,7 +3,7 @@ const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(pr
 
 const toombatize = require('./toombatize');
 
-const graph = message => {
+const graph = (message : any) => {
 	return Promise.all([
 		companize(message),
 		linkize(message),
@@ -16,7 +16,7 @@ const graph = message => {
 	})
 }
 
-const factize = message => {
+const factize = (message : any) => {
 
 	if(!message.alchemy || message.alchemy.relations.length == 0)
 		return Promise.resolve(false);
@@ -24,7 +24,8 @@ const factize = message => {
 	const session = driver.session();
 	const tx = session.beginTransaction();
 
-	const facts = message.alchemy.relations.filter(m => m.action && m.action.lemmatized == 'be' && m.subject && m.object);
+	const facts = message.alchemy.relations
+		.filter((m : any) => m.action && m.action.lemmatized == 'be' && m.subject && m.object);
 
 	const promises = [];
 	for(let fact of facts) {
@@ -55,7 +56,7 @@ const factize = message => {
 					k_id: kw.text,
 					k_type: kw.knowledgeGraph ? kw.knowledgeGraph.typeHierarchy : '',
 					k_score: kw.relevance || 1
-				}).catch(err => console.error('tx run error factize keywordize', fact, err)))
+				}).catch((err : Error) => console.error('tx run error factize keywordize', fact, err)))
 			const e_promises = entities.map(e => tx.run(`
 					MATCH (f:Fact {id: {f_id} })
 					MERGE (e:Entity {id: {e_id}, types: {e_type} })
@@ -65,11 +66,11 @@ const factize = message => {
 					e_id: e.text,
 					e_type: e.knowledgeGraph ? e.knowledgeGraph.typeHierarchy : '',
 					e_score: e.relevance || 1
-				}).catch(err => console.error('tx run error factize keywordize', fact, err)))
+				}).catch((err : Error) => console.error('tx run error factize keywordize', fact, err)))
 
 			return Promise.all([...kw_promises, ...e_promises])
 		})
-		.catch(err => console.error('tx run error factize', fact, err))
+		.catch((err : Error) => console.error('tx run error factize', fact, err))
 
 		promises.push(p);
 	}
@@ -81,24 +82,24 @@ const factize = message => {
 
 }
 
-const annotate = message => {
+const annotate = (message : any) => {
 	const session = driver.session()
 	const tx = session.beginTransaction();
 
 	const transactions = toombatize.annotate(message);
 
 	for(let trans of transactions)
-		tx.run(trans).catch(err => console.error('toombatize tx run error', err));
+		tx.run(trans).catch((err : Error) => console.error('toombatize tx run error', err));
 
 	return tx.commit()
 		.then(() => session.close())
 		.catch(() => session.close())
 }
 
-const mentionize = message => {
+const mentionize = (message : any) : Promise<void> => {
 
 	if(message.mentions == undefined || message.mentions.length == 0) {
-		return Promise.resolve(false);
+		return Promise.resolve();
 	}
 
 	const session = driver.session();
@@ -115,19 +116,19 @@ const mentionize = message => {
 		`, {
 			m_id: message.id,
 			u_id: mention.id
-		}).catch(err => console.error('tx run error mentionize', mention, err))
+		}).catch((err : Error) => console.error('tx run error mentionize', mention, err))
 	}
 
-	tx.commit()
+	return tx.commit()
 		.then(() => session.close())
-		.catch(err => {
-			console.error('tx commit err mentionize', mentions, err)
+		.catch((err : Error) => {
+			console.error('tx commit err mentionize', message.mentions, err)
 			session.close()
 		})
 
 }
 
-const companize = message => {
+const companize = (message : any) => {
 	if(message.companies.length == 0)
 		return Promise.resolve(false);
 
@@ -160,13 +161,13 @@ const companize = message => {
 			c_typeDisp: company.typeDisp,
 			c_evidence: company.evidence,
 			r_rank: i
-		}).catch(err => console.error('tx run error', message.companies, err))
+		}).catch((err : Error) => console.error('tx run error', message.companies, err))
 	}
 
 	return tx.commit().then(() => session.close());
 }
 
-const linkize = (message) => {
+const linkize = (message : any) => {
 
 	if(message.links.length == 0)
 		return Promise.resolve(false);
@@ -182,7 +183,7 @@ const linkize = (message) => {
 		`, {
 			m_id: message.id,
 			l_url: link.url
-		}).catch(err => console.error('tx run error', message.links, err))
+		}).catch((err : any) => console.error('tx run error', message.links, err))
 	}
 
 	for(let link_meta of message.link_meta) {
@@ -201,13 +202,13 @@ const linkize = (message) => {
 				t_id: tag.type + '-' + tag.label,
 				t_label: tag.label,
 				t_type: tag.type
-			}).catch(err => console.error('tx run error', message.link_meta, err))
+			}).catch((err : any) => console.error('tx run error', message.link_meta, err))
 		}
 	}
 
 	return tx.commit().then(() => session.close())
 }
 
-module.exports = {
+export default {
 	graph
 };

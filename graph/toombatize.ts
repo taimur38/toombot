@@ -1,4 +1,4 @@
-const annotate = message => [
+const annotate = (message : any) => [
 	...conceptize("Message", message.id, message.alchemy.concepts),
 	...entitize("Message", message.id, message.alchemy.entities),
 	...keywordize("Message", message.id, message.alchemy.keywords),
@@ -6,7 +6,7 @@ const annotate = message => [
 	...emotionalize("Message", message.id, message.alchemy.emotions)
 ];
 
-const emotionalize = (nodeType, nodeId, emotions) => {
+const emotionalize = (nodeType : string, nodeId : string, emotions : Object) => {
 	let transactions = [];
 
 	for(let emotion in emotions) {
@@ -22,8 +22,8 @@ const emotionalize = (nodeType, nodeId, emotions) => {
 	return transactions;
 }
 
-const conceptize = (nodeType, nodeId, concepts) => {
-	let transactions = [];
+const conceptize = (nodeType : string, nodeId : string, concepts : any[]) => {
+	let transactions : string[] = [];
 	for(let concept of concepts) {
 		if (parseFloat(concept.relevance) < 0.01 ) {
 			continue;
@@ -55,9 +55,9 @@ const conceptize = (nodeType, nodeId, concepts) => {
 	return transactions;
 }
 
-const entitize = (nodeType, nodeId, entities) => {
+const entitize = (nodeType : string, nodeId : string, entities : any[]) => {
 
-	let transactions = [];
+	let transactions : any[] = [];
 	for(let entity of entities) {
 		let disambiguated = entity.disambiguated || {};
 		if (parseFloat(entity.relevance) < 0.01) {
@@ -93,9 +93,9 @@ const entitize = (nodeType, nodeId, entities) => {
 	return transactions;
 }
 
-const keywordize = (nodeType, nodeId, keywords) => {
+const keywordize = (nodeType : string, nodeId : string, keywords : any[]) => {
 
-	let transactions = [];
+	let transactions : string[] = [];
 	for(let keyword of keywords) {
 		if (parseFloat(keyword.relevance) < 0.01) {
 			continue;
@@ -118,7 +118,7 @@ const keywordize = (nodeType, nodeId, keywords) => {
 	return transactions;
 }
 
-const taxonimize = (nodeType, nodeId, taxonomies) => {
+const taxonimize = (nodeType : string, nodeId : string, taxonomies : any[]) => {
 
 	let transactions = [];
 	for(let taxonomy of taxonomies) {
@@ -146,8 +146,8 @@ const taxonimize = (nodeType, nodeId, taxonomies) => {
 	return transactions;
 }
 
-const knowledgeGraphize = (rootType, rootId, types) => {
-	let transactions = [];
+const knowledgeGraphize = (rootType : string, rootId : string, types : any[]) => {
+	let transactions : string[] = [];
 	transactions.push(`
 		MATCH (n:${rootType} {id: "${rootId}"})
 		MERGE (t:Type {id: "${types[types.length - 1]}"})
@@ -163,7 +163,7 @@ const knowledgeGraphize = (rootType, rootId, types) => {
 	return transactions;
  }
 
-module.exports = {
+export default {
 	annotate,
 	entitize,
 	conceptize,

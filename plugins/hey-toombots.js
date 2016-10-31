@@ -82,7 +82,7 @@ function getFact(message) {
 
 function specificThoughts(response) {
 	let topic = response.text.split("think about")[1].replace("?", "");
-	return session.get(`/search.json?q=${topic}`)
+	return session.get(`/search.json?q=${topic}+nsfw:no+self:no`)
 		.then(rsp => rsp.data)
 		.then(results => {
 			let promises = [];
@@ -135,7 +135,7 @@ function thoughts(response) {
 	if(!concept_merge)
 		return { text: 'i have no thoughts on the matter' }
 
-	return session.get(`/search.json?q=${concept_merge}`)
+	return session.get(`/search.json?q=${concept_merge}+nsfw:no+self:no`)
 		.then(rsp => rsp.data)
 		.then(results => {
 
@@ -148,7 +148,7 @@ function thoughts(response) {
 				.map(post => ({
 					message: post.data.title + ': ' + post.data.url,
 					url: post.data.url,
-					source: `/search.json?q=${concept_merge}`,
+					source: `/search.json?q=${concept_merge}+nsfw:no+self:no`,
 					score: post.data.score // TODO: fill this out. currently just the reddit score - different search might have a score derived from how recent it is, how many responses it gets, whatever.
 				}))
 				.sort((a, b) => b.score - a.score)

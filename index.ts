@@ -1,11 +1,12 @@
-import { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } from '@slack/client';
+const { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } = require('@slack/client');
 import * as uuid from 'node-uuid'
 import { EventEmitter } from 'events'
 
 import graph from './graph';
 import * as minions from './minions';
+import { SlackMessage } from './types';
 
-import nlc from './lib/nlc';
+// import nlc from './lib/nlc';
 
 const token = process.env.SLACK_TOKEN;
 
@@ -15,7 +16,7 @@ const rtm = new RtmClient(token, {
 
 rtm.start();
 
-const slackClean = (message : any) => {
+const slackClean = (message : any) : SlackMessage => {
 
 	let mentions = undefined;
 	if(message.text) {
@@ -23,7 +24,9 @@ const slackClean = (message : any) => {
 		mentions = ats && ats.length > 0 && ats.map((uid : any) => rtm.dataStore.getUserById(uid.slice(1))).filter((r : any) => r);
 	}
 
+
 	return Object.assign({}, message, {
+		text: message.text,
 		user: rtm.dataStore.getUserById(message.user),
 		timestamp: new Date(parseFloat(message.ts) * 1000),
 		mentions,
@@ -51,10 +54,10 @@ rtm.on(RTM_EVENTS.MESSAGE, (message : any) => {
 	if(message.type != 'message' || message.subtype) {
 		return;
 	}
-	console.log(message.text)
+	console.log('text', message.text)
 	const cleaned = slackClean(message);
 
-	minions.dispatch(myEmitter, message)
+	minions.dispatch(myEmitter, cleaned)
 })
 
 myEmitter.on('send', async function(response : string, message : any) {
@@ -74,7 +77,7 @@ myEmitter.on('send', async function(response : string, message : any) {
 		console.error('repost error', e)
 	}
 
-	try {
+	/* try {
 		const classification = await nlc.classify('toombot-output', response)
 
 		console.log(classification)
@@ -82,10 +85,12 @@ myEmitter.on('send', async function(response : string, message : any) {
 	} catch(e) {
 		console.error('nlc error', e)
 	}
+	*/
 
 	const slackResponse = await sendMessage(response, message.channel.id);
 
-	minions.dispatch(myEmitter, slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
+	graph.message(slackClean(slackResponse));
+	// minions.dispatch(myEmitter, slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
 });
 
 function sendMessage(text : string, channel_id : string) {
