@@ -25,38 +25,47 @@ const minion_map = new Map<string, ActiveMinion>(); //
 
 export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
+	console.time('scheduling')
 	const scheduled_minions = schedule(message);
+	console.timeEnd('scheduling')
 
 	let processed_message = message;
 	for(let minions of scheduled_minions) {
-		const responses = await Promise.all<FormattedMinionResponse>(
-			minions
-				.filter(m => m.requirements.every(req => {
-					return processed_message[req];
-				}))
-				.map(m => {
-					const generator = m.generator || m.init(processed_message);
-
-					const output = generator.next(processed_message);
-					return output.value.then((r : any) => ({
-						value: r,
-						done: output.done,
-						minion: m,
-						generator
+		let responses : FormattedMinionResponse[]
+		try {
+			responses = await Promise.all<FormattedMinionResponse>(
+				minions
+					.filter(m => m.requirements.every(req => {
+						return processed_message[req];
 					}))
-				}));
+					.map(m => {
+						const generator = m.generator || m.init(processed_message);
 
-		const senders = responses.filter(x => x.value.send);
+						const output = generator.next(processed_message);
+						return output.value
+							.then((r : any) => ({
+								value: r,
+								done: output.done,
+								minion: m,
+								generator
+							}))
+							.catch(err => console.error('minion errrrr', m.key, err))
+					}));
+		} catch(e) {
+			console.error('minion error!!!', e)
+		}
+
+		const senders = responses.filter(x => x.value && x.value.send);
 		senders.forEach(msg => emitter.emit('send',
 			msg.value.text,
 			message
 		));
 
 		// update map
-		responses.forEach((response : FormattedMinionResponse) => {
+		responses.forEach(response => {
 
 			const m_key = `${message.channel.id}-${response.minion.key}`;
-			if(response.done) {
+			if(response.done || response.value == undefined) {
 				minion_map.delete(m_key)
 			} else  {
 				minion_map.set(m_key, {
@@ -70,7 +79,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
 		// pass processed_message to next round of minions
 		processed_message = responses
-			.filter(x => !x.value.send)
+			.filter(x => x.value && !x.value.send)
 			.reduce((agg : any, curr : any) => {
 				return Object.assign({}, agg, curr.value);
 			}, processed_message)
@@ -82,7 +91,6 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 	// but the requirements list can.
 
 	// this will either pass existing enerator in minion_map or initialize new generator if doesnt exist.
-	console.log('normalizing')
 	const normalized : ActiveMinion[] = [];
 	global_minions
 		.forEach((m : MinionModule) : void => {
@@ -93,7 +101,6 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 			if(minion_map.has(key)) {
 				const minion = minion_map.get(key);
 				if(minion.filter === undefined || minion.filter(message)) {
-					console.log(minion)
 					normalized.push(minion) // aka return minion
 					return;
 				}
@@ -114,15 +121,12 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 				}
 				return;
 			}
-			console.log("HERE??", m)
 		})
 
-	console.log('normalized')
 	// schedule normalized minions based on requirements. return array of arrays of normalized minions
 	let orders = new Map<string, number>();
 
 	const calculate = (service_key : string) : number => {
-		console.log('calculating', service_key)
 		if(orders.has(service_key))
 			return orders.get(service_key);
 
@@ -151,7 +155,6 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 
 	normalized.forEach(m => calculate(m.key));
 
-	console.log('mapping')
 	let scheduled_minions : ActiveMinion[][] = [];
 	for(let service_key of orders.keys()) {
 		let curr : ActiveMinion[] = [];

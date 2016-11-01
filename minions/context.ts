@@ -16,11 +16,15 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 	while(true) {
 		const transcript = previousMessages.reduce((agg, curr, idx) => idx == 0 ? curr.text : agg + '. ' + curr.text, '');
 
+		console.log('context tscript', transcript)
+
 		const nextMessage = yield getAllTheThings(transcript)
 			.then(alchemized => ({
 				context: alchemized
 			}))
-			.catch(err => console.error('context err', err))
+			.catch(err => {
+				console.error('context err', err)
+			})
 
 		previousMessages.push(nextMessage);
 		previousMessages = previousMessages

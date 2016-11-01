@@ -7,6 +7,7 @@ export interface Response {
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
+	console.log('here')
 	const text = message.text;
 
 	return alchemy.getAllTheThings(text)

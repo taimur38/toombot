@@ -59,7 +59,11 @@ function _post(contentType : string, endpoint : string, content : string, args? 
 					return reject(new Error(parsed.statusInfo));
 				}
 				return resolve(parsed);
-			});
+			})
+			.catch(err => {
+				console.error('alchemy!', err);
+				reject(err)
+			})
 		})
 }
 

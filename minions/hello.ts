@@ -12,21 +12,23 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 
 	console.log('here')
 
-	return Promise.resolve({
-		text: `${response.context.concepts.length} alchemy concepts`,
-		send: true
+	yield Promise.resolve({
+		text: `${response.context.concepts.length} alchemy concepts in context`,
+		send: true,
+		filter: (msg : SlackMessage) => msg.text.indexOf('what are they') > -1
 	});
+
+	return Promise.resolve({
+		text: `${response.context.concepts.map(c => c.text).join(',')}`,
+		send: true
+	})
+
 }
 
-const key = (msg : any) : string => `${msg.user.id}-hello`
-const requirements : string[] = [];
-const filter = (msg : any) : boolean => true
 
 const mod : MinionModule = {
-	key,
-	onMessage,
-	requirements,
-	filter
+	key: (msg: SlackMessage) => `${msg.user.id}-hello`,
+	onMessage
 }
 
 export default mod;
