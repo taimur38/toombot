@@ -5,8 +5,10 @@ export interface MinionModule {
 	requirements?: string[]
 }
 
+// it will either have generator field or init field. yes this makes no sense from this perspective
 export interface ActiveMinion {
-	generator: Iterator<Promise<Object>>,
+	generator?: Iterator<Promise<Object>>,
+	init?: (msg: any) => Iterator<Promise<Object>>,
 	requirements: string[],
 	filter: (msg : any) => boolean,
 	key: string

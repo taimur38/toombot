@@ -3,19 +3,22 @@ import { EventEmitter } from 'events'
 import alchemy from './alchemize'
 import hello from './hello'
 import companies from './companies'
+import context from './context'
 
 import { MinionModule, ActiveMinion, SlackMessage } from '../types';
 
 const global_minions : MinionModule[] = [
 	alchemy,
 	hello,
-	companies
+	companies,
+	//context
 ]
 
 interface FormattedMinionResponse {
 	value: any,
 	done: boolean,
-	minion: ActiveMinion
+	minion: ActiveMinion,
+	generator: Iterator<Promise<Object>>
 }
 
 const minion_map = new Map<string, ActiveMinion>(); //
@@ -32,11 +35,14 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 					return processed_message[req];
 				}))
 				.map(m => {
-					const output = m.generator.next(processed_message);
+					const generator = m.generator || m.init(processed_message);
+
+					const output = generator.next(processed_message);
 					return output.value.then((r : any) => ({
 						value: r,
 						done: output.done,
-						minion: m
+						minion: m,
+						generator
 					}))
 				}));
 
@@ -47,16 +53,16 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 		));
 
 		// update map
-		responses.forEach((response : { minion: ActiveMinion, done: boolean, value: any }) => {
+		responses.forEach((response : FormattedMinionResponse) => {
 
 			const m_key = `${message.channel.id}-${response.minion.key}`;
 			if(response.done) {
 				minion_map.delete(m_key)
 			} else  {
 				minion_map.set(m_key, {
-					generator: response.minion.generator as Iterator<Promise<any>>,
+					generator: response.generator,
 					requirements: response.value.requirements || [] as string[],
-					filter: response.value.filter,
+					filter: response.value.filter || (() => true),
 					key: response.minion.key
 				})
 			}
@@ -67,7 +73,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 			.filter(x => !x.value.send)
 			.reduce((agg : any, curr : any) => {
 				return Object.assign({}, agg, curr.value);
-			}, {})
+			}, processed_message)
 	}
 }
 
@@ -93,10 +99,17 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 				minion_map.delete(key);
 			}
 
+			// here we do some sneaky shit by wrapping the generator with a custom function that initializes and calls next.
 			if(m.filter === undefined || m.filter(message)) {
-				const generator = m.onMessage(message);
-				// console.log(generator.next())
-				normalized.push({ generator : generator, requirements: m.requirements || [], key: m_key, filter: m.filter })
+				try {
+					normalized.push({
+						init: m.onMessage,
+						requirements: m.requirements || [],
+						key: m_key, filter: m.filter
+					})
+				} catch(e) {
+					console.error('error with minion', e)
+				}
 				return;
 			}
 		})

@@ -9,7 +9,12 @@ interface Response {
 	companies: any[]
 }
 
-function* onMessage(message : SlackMessage & { alchemy: AllTheThings }) : Iterator<Promise<Response>> {
+function* onMessage(message : SlackMessage & { context: AllTheThings }) : Iterator<Promise<Response>> {
+
+	if(!message.context) {
+		console.log("SHIT")
+		return Promise.resolve(false)
+	}
 
 	const companies = message.alchemy.entities.filter(isCompany).map((entity : any) => entity.text as string)
 	const potential_symbols = message.text.split(' ').filter((word : string) => word.toUpperCase() == word && word.length >= 2 && word.length <= 4); //TODO: check numbers
@@ -32,7 +37,7 @@ const lookupSymbol = (word : string) => axios.get(`http://d.yimg.com/aq/autoc?qu
 const mod : MinionModule = {
 	onMessage,
 	key: (msg : SlackMessage) => 'companies',
-	requirements: ['alchemy'],
+	requirements: ['context'],
 	filter: (msg : SlackMessage) => true
 }
 

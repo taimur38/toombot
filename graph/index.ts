@@ -41,7 +41,7 @@ const onMessage = (message : any) => {
 		c_id: message.channel.id,
 		c_name: message.channel.name || ''
 	})
-	.then((res : any) => meta.graph(message))
+	//.then((res : any) => meta.graph(message))
 	.catch((err : Error) => {
 		console.error('errrr', err)
 	})
