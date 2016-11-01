@@ -13,7 +13,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 		.then(things => ({ alchemy: things }))
 		.catch((err : Error) => {
 			console.log("Preprocessor: " + err);
-            console.log(err);
+			console.log(err);
 			return;
 		})
 }

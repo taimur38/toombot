@@ -11,7 +11,7 @@ const global_minions : MinionModule[] = [
 	alchemy,
 	hello,
 	companies,
-	//context
+	context
 ]
 
 interface FormattedMinionResponse {
@@ -82,6 +82,7 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 	// but the requirements list can.
 
 	// this will either pass existing enerator in minion_map or initialize new generator if doesnt exist.
+	console.log('normalizing')
 	const normalized : ActiveMinion[] = [];
 	global_minions
 		.forEach((m : MinionModule) : void => {
@@ -92,6 +93,7 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 			if(minion_map.has(key)) {
 				const minion = minion_map.get(key);
 				if(minion.filter === undefined || minion.filter(message)) {
+					console.log(minion)
 					normalized.push(minion) // aka return minion
 					return;
 				}
@@ -112,12 +114,15 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 				}
 				return;
 			}
+			console.log("HERE??", m)
 		})
 
+	console.log('normalized')
 	// schedule normalized minions based on requirements. return array of arrays of normalized minions
 	let orders = new Map<string, number>();
 
 	const calculate = (service_key : string) : number => {
+		console.log('calculating', service_key)
 		if(orders.has(service_key))
 			return orders.get(service_key);
 
@@ -146,6 +151,7 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 
 	normalized.forEach(m => calculate(m.key));
 
+	console.log('mapping')
 	let scheduled_minions : ActiveMinion[][] = [];
 	for(let service_key of orders.keys()) {
 		let curr : ActiveMinion[] = [];

@@ -1,16 +1,19 @@
 import { MinionModule, MinionResult, SlackMessage } from '../types';
+import { AllTheThings } from '../lib/alchemy'
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 
-	const response = yield Promise.resolve({
+	const response : SlackMessage & { context: AllTheThings } = yield Promise.resolve({
 		filter: (msg : any) : boolean => true,
-		text: 'hello',
+		text: 'testing',
 		send: true,
-		requirements: ['alchemy']
+		requirements: ['context']
 	})
 
+	console.log('here')
+
 	return Promise.resolve({
-		text: `${response.alchemy.concepts.length} alchemy concepts`,
+		text: `${response.context.concepts.length} alchemy concepts`,
 		send: true
 	});
 }

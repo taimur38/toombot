@@ -9,9 +9,9 @@ interface Response {
 	companies: any[]
 }
 
-function* onMessage(message : SlackMessage & { context: AllTheThings }) : Iterator<Promise<Response>> {
+function* onMessage(message : SlackMessage & { alchemy: AllTheThings }) : Iterator<Promise<Response>> {
 
-	if(!message.context) {
+	if(!message.alchemy) {
 		console.log("SHIT")
 		return Promise.resolve(false)
 	}
@@ -37,7 +37,7 @@ const lookupSymbol = (word : string) => axios.get(`http://d.yimg.com/aq/autoc?qu
 const mod : MinionModule = {
 	onMessage,
 	key: (msg : SlackMessage) => 'companies',
-	requirements: ['context'],
+	requirements: ['alchemy'],
 	filter: (msg : SlackMessage) => true
 }
 
