@@ -1,6 +1,6 @@
 import * as axios from 'axios';
 import { MinionModule, SlackMessage, MinionResult } from '../types';
-import { AllTheThings } from '../lib/alchemy'
+import * as alchemize from './alchemize'
 
 //const approvedExchanges = ['NAS', 'NYQ', 'NASDAQ'];
 const isCompany = (concept : any) => concept.type == 'Company' || (concept.knowledgeGraph && concept.knowledgeGraph.typeHierarchy.toLowerCase().indexOf("companies") > -1);
@@ -9,12 +9,7 @@ interface Response {
 	companies: any[]
 }
 
-function* onMessage(message : SlackMessage & { alchemy: AllTheThings }) : Iterator<Promise<Response>> {
-
-	if(!message.alchemy) {
-		console.log("SHIT")
-		return Promise.resolve(false)
-	}
+function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Promise<Response>> {
 
 	const companies = message.alchemy.entities.filter(isCompany).map((entity : any) => entity.text as string)
 	const potential_symbols = message.text.split(' ').filter((word : string) => word.toUpperCase() == word && word.length >= 2 && word.length <= 4); //TODO: check numbers

@@ -1,7 +1,7 @@
 import * as alchemy from '../lib/alchemy';
 import { SlackMessage } from '../types';
 
-interface Response {
+export interface Response {
 	alchemy: alchemy.AllTheThings
 }
 

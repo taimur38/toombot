@@ -5,7 +5,7 @@ let contexts = {}; //key is channel, value is previous transcripts
 const interval = 5 * 60 * 1000; // 5 minutes
 
 const key = 'context'
-interface Response {
+export interface Response {
 	context: AllTheThings
 }
 
