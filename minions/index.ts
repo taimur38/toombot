@@ -9,6 +9,7 @@ import linkMeta from './link-meta'
 import imageize from './image-ize'
 import locations from './locations'
 import tonalize from './tonalize'
+import reddit from './reddit'
 
 import { MinionModule, ActiveMinion, SlackMessage } from '../types';
 
@@ -21,7 +22,8 @@ const global_minions : MinionModule[] = [
 	linkMeta,
 	imageize,
 	locations,
-	tonalize
+	tonalize,
+	reddit
 ]
 
 interface FormattedMinionResponse {

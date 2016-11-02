@@ -57,7 +57,8 @@ rtm.on(RTM_EVENTS.MESSAGE, (message : any) => {
 	console.log('text', message.text)
 	const cleaned = slackClean(message);
 
-	minions.dispatch(myEmitter, cleaned)
+	if(message.user.name != 'toombot')
+		minions.dispatch(myEmitter, cleaned)
 })
 
 myEmitter.on('send', async function(response : string, message : any) {

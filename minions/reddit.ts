@@ -1,4 +1,6 @@
-const axios = require('axios');
+import * as axios from 'axios';
+import { SlackMessage, MinionResult, MinionModule } from '../types'
+import { Response } from './links';
 
 const session = axios.create({
 	baseURL: 'http://reddit.com',
@@ -7,8 +9,11 @@ const session = axios.create({
 	}
 });
 
-function* onMessage(message) {
+function* onMessage(message : SlackMessage & Response) : Iterator<Promise<MinionResult>> {
 
+	if(message.links.length == 0) {
+		return Promise.resolve()
+	}
 	const link = message.links[0];
 	let url = link.url;
 
@@ -20,7 +25,7 @@ function* onMessage(message) {
 
 	return session.get(`/search.json?q=url:${url}`)
 		.then(rsp => rsp.data)
-		.then(results => {
+		.then((results : any) => {
 			const posts = results.data.children;
 
 			if(posts.length == 0)
@@ -41,8 +46,8 @@ function* onMessage(message) {
 		.catch(err => console.log(err))
 }
 
-const getComments = permalink => session.get(`${permalink}.json`)
-		.then(rsp => {
+export const getComments = (permalink : SlackMessage) => session.get(`${permalink}.json`)
+		.then((rsp : any) => {
 			if(rsp.data && rsp.data.length >= 2)
 				return rsp.data[1].data.children;
 
@@ -56,9 +61,9 @@ const getComments = permalink => session.get(`${permalink}.json`)
 				return comments[0].data.body
 
 			const scored = comments.slice(0, Math.min(5, comments.length - 1))
-				.map(c => c.data)
-				.filter(c => c.body.indexOf("[deleted]") == -1)
-				.map(c => ({
+				.map((c : any) => c.data)
+				.filter((c : any) => c.body.indexOf("[deleted]") == -1)
+				.map((c : any) => ({
 					text: c.body,
 					isLong: c.body.split(' ').length > 50,
 					isDiscussed: 0, // something with replies
@@ -68,21 +73,24 @@ const getComments = permalink => session.get(`${permalink}.json`)
 					isGilded: c.gilded > 0,
 					score: c.score
 				}))
-				.filter(c => !c.isBot && !c.isLong)
-				.map(c => ({
-					text: c.text,
-					score: 2000 * c.isSummary + 200 * c.isMedia + 200 * c.isGilded + c.score
-				}))
-				.sort((a, b) => b.score - a.score)
+				.filter((c : any) => !c.isBot && !c.isLong)
+				.map((c : any) => {
+					return {
+						text: c.text as string,
+						score: 2000 * c.isSummary + 200 * c.isMedia + 200 * c.isGilded + c.score as number
+					}
+				})
+				.sort((a : any, b : any) => b.score - a.score)
 
 			//console.log(scored)
 
-			return { text: scored[0] ? scored[0].text : false };
+			return { text: scored[0] ? scored[0].text : false, send: true };
 		})
 
-module.exports = {
+const mod : MinionModule = {
 	onMessage,
-	getComments,
-	key: msg => 'reddit',
-	filter: msg => msg.links.length > 0
+	key: (msg : SlackMessage) => 'reddit',
+	requirements: ['links']
 }
+
+export default mod;
