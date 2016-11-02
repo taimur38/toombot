@@ -3,7 +3,12 @@ import { SlackMessage, MinionModule } from '../types'
 const key = 'links'
 
 export interface Response {
-	links: { url: string, domain: string }[]
+	links: Link[]
+}
+
+export interface Link {
+	url: string,
+	domain: string
 }
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {

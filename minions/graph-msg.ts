@@ -1,0 +1,23 @@
+import graph from '../graph'
+import { MinionModule, SlackMessage } from '../types'
+
+export interface Response {
+	graphMsg: boolean
+}
+
+function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
+
+	return graph.message(message)
+		.then(() => {
+			console.log('done graph')
+			return { graphMsg: true }
+		})
+		.catch((err : Error) => console.error(err))
+}
+
+const mod : MinionModule = {
+	onMessage,
+	key: (msg : SlackMessage) => 'graphMsg'
+}
+
+export default mod;

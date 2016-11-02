@@ -10,20 +10,24 @@ import imageize from './image-ize'
 import locations from './locations'
 import tonalize from './tonalize'
 import reddit from './reddit'
+import graphMeta from './graph-meta'
+import graphMsg from './graph-msg'
 
 import { MinionModule, ActiveMinion, SlackMessage } from '../types';
 
 const global_minions : MinionModule[] = [
 	alchemy,
-	hello,
+	//hello,
 	companies,
 	context,
 	links,
 	linkMeta,
 	imageize,
 	locations,
-	tonalize,
-	reddit
+	//tonalize,
+	reddit,
+	graphMeta,
+	graphMsg
 ]
 
 interface FormattedMinionResponse {
@@ -41,10 +45,13 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 	const scheduled_minions = schedule(message);
 	console.timeEnd('scheduling')
 
+	let i = 0;
 	let processed_message = message;
 	for(let minions of scheduled_minions) {
 		let responses : FormattedMinionResponse[]
 		try {
+			i += 1;
+			console.log('round ', i)
 			responses = await Promise.all<FormattedMinionResponse>(
 				minions
 					.filter(m => m.requirements.every(req => {
@@ -57,6 +64,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 						console.log(m.key)
 						return output.value
 							.then((r : any) => {
+								console.log(m.key, 'done')
 								if(r && r.send) {
 									emitter.emit('send', r.text, message);
 								}

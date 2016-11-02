@@ -18,7 +18,7 @@ interface FormattedTags {
 }
 
 export interface Response {
-	link_meta: { link: string, meta: FormattedTags[] }[]
+	link_meta: { link: links.Link, meta: FormattedTags[] }[]
 }
 
 function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<Response>> {

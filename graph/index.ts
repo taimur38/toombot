@@ -2,14 +2,16 @@ const neo4j = require('neo4j-driver').v1;
 
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
+import { SlackMessage } from '../types'
 import meta from './meta';
 import reaction from './reaction';
 import isRepost from './repost';
 
-const onMessage = (message : any) => {
+const onMessage = (message : SlackMessage) => {
 	const session = driver.session();
 
-	session.run(`
+	console.log('running onMessage....')
+	return session.run(`
 		MERGE (u:User {id: {u_id} })
 		SET
 			u.name = {u_name},
@@ -41,9 +43,8 @@ const onMessage = (message : any) => {
 		c_id: message.channel.id,
 		c_name: message.channel.name || ''
 	})
-	//.then((res : any) => meta.graph(message))
 	.catch((err : Error) => {
-		console.error('errrr', err)
+		console.error('graph msg error', err)
 	})
 	.then(() => session.close())
 }

@@ -27,13 +27,18 @@ export interface SlackMessage {
 	user: SlackUser,
 	mentions: SlackUser[],
 	timestamp: Date,
+	ts: number,
 	channel: SlackChannel
 }
 
 export interface SlackUser {
 	name: string,
 	id: string,
-	email?: string
+	profile: {
+		email: string,
+		image_original: string,
+		image_512: string
+	}
 }
 
 export interface SlackChannel {

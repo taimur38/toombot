@@ -5,8 +5,18 @@ import * as alchemize from './alchemize'
 //const approvedExchanges = ['NAS', 'NYQ', 'NASDAQ'];
 const isCompany = (concept : any) => concept.type == 'Company' || (concept.knowledgeGraph && concept.knowledgeGraph.typeHierarchy.toLowerCase().indexOf("companies") > -1);
 
-interface Response {
-	companies: any[]
+export interface Response {
+	companies: Company[]
+}
+
+interface Company {
+	name: string,
+	symbol: string,
+	exch: string,
+	type: string,
+	exchDisp: string,
+	typeDisp: string,
+	evidence: string,
 }
 
 function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Promise<Response>> {
