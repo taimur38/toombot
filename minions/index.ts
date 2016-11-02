@@ -48,23 +48,22 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 						const output = generator.next(processed_message);
 						console.log(m.key)
 						return output.value
-							.then((r : any) => ({
-								value: r,
-								done: output.done,
-								minion: m,
-								generator
-							}))
+							.then((r : any) => {
+								if(r && r.send) {
+									emitter.emit('send', r.text, message);
+								}
+								return {
+									value: r,
+									done: output.done,
+									minion: m,
+									generator
+								}
+							})
 							.catch(err => console.error('minion errrrr', m.key, err))
 					}));
 		} catch(e) {
 			console.error('minion error!!!', e)
 		}
-
-		const senders = responses.filter(x => x.value && x.value.send);
-		senders.forEach(msg => emitter.emit('send',
-			msg.value.text,
-			message
-		));
 
 		// update map
 		responses.forEach(response => {
