@@ -4,6 +4,8 @@ import alchemy from './alchemize'
 import hello from './hello'
 import companies from './companies'
 import context from './context'
+import links from './links'
+import linkMeta from './link-meta';
 
 import { MinionModule, ActiveMinion, SlackMessage } from '../types';
 
@@ -11,7 +13,9 @@ const global_minions : MinionModule[] = [
 	alchemy,
 	hello,
 	companies,
-	context
+	context,
+	links,
+	linkMeta
 ]
 
 interface FormattedMinionResponse {
@@ -42,6 +46,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 						const generator = m.generator || m.init(processed_message);
 
 						const output = generator.next(processed_message);
+						console.log(m.key)
 						return output.value
 							.then((r : any) => ({
 								value: r,
