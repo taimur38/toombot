@@ -1,6 +1,12 @@
-const alchemy = require('../lib/alchemy');
+import alchemy from '../lib/alchemy';
+import * as links from './links'
+import { SlackMessage, MinionModule } from '../types';
 
-const Process = message => {
+interface Response {
+	imageTags: any
+}
+
+function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<Response>> {
 
 	const links = message.links;
 	if(links.length == 0)
@@ -18,8 +24,10 @@ const Process = message => {
 	return Promise.resolve();
 }
 
-module.exports = {
-	Process,
-	key: 'imageTags',
+const mod : MinionModule = {
+	onMessage,
+	key: (msg : SlackMessage) => 'imageTags',
 	requirements: ['links']
 }
+
+export default mod;

@@ -5,7 +5,10 @@ import hello from './hello'
 import companies from './companies'
 import context from './context'
 import links from './links'
-import linkMeta from './link-meta';
+import linkMeta from './link-meta'
+import imageize from './image-ize'
+import locations from './locations'
+import tonalize from './tonalize'
 
 import { MinionModule, ActiveMinion, SlackMessage } from '../types';
 
@@ -15,7 +18,10 @@ const global_minions : MinionModule[] = [
 	companies,
 	context,
 	links,
-	linkMeta
+	linkMeta,
+	imageize,
+	locations,
+	tonalize
 ]
 
 interface FormattedMinionResponse {

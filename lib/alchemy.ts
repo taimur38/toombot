@@ -67,14 +67,14 @@ function _post(contentType : string, endpoint : string, content : string, args? 
 		})
 }
 
-function getRelations(content : string, contentType : string) : axios.Promise {
+export function getRelations(content : string, contentType : string) : axios.Promise {
 	contentType = contentType || "text";
 
 	return _post(contentType, "GetRelations", content, {})
 		.then((data : any) => data.relations)
 }
 
-function getKeywords(content : string, contentType : string, sanitize : boolean) {
+export function getKeywords(content : string, contentType : string, sanitize : boolean) {
 	contentType = contentType || "text";
 	sanitize = sanitize || false;
 
@@ -88,7 +88,7 @@ function getKeywords(content : string, contentType : string, sanitize : boolean)
 
 }
 
-function getImageKeywords(content : string) {
+export function getImageKeywords(content : string) {
 	return _post("url", "GetRankedImageKeywords", content)
 		.then((data : any) =>  {
 

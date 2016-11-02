@@ -1,12 +1,16 @@
-const isLoc = concept => concept.geo || (concept.knowledgeGraph && concept.knowledgeGraph.typeHierarchy.indexOf("/places/") > -1);
+import { SlackMessage, MinionModule } from '../types'
+import * as alchemize from './alchemize';
 
-const Process = message => {
+const isLoc = (concept : any) => concept.geo || (concept.knowledgeGraph && concept.knowledgeGraph.typeHierarchy.indexOf("/places/") > -1);
 
-	if (!message.alchemy || (!message.alchemy.concepts && !message.alchemy.entities && !message.alchemy.keywords)) {
-		return Promise.resolve({
-			locations: []
-		});
+export interface Response {
+	locations: {
+		text: string,
+		relevance: number
 	}
+}
+
+function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Promise<Response>> {
 
 	let temp = {};
 
@@ -53,8 +57,10 @@ const Process = message => {
 	});
 }
 
-module.exports = {
-	Process,
-	key: 'locations',
+const mod : MinionModule = {
+	onMessage,
+	key: (msg : SlackMessage) => 'locations',
 	requirements: ['alchemy']
 }
+
+export default mod;
