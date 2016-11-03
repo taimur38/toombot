@@ -128,7 +128,6 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 				minion_map.delete(key);
 			}
 
-			// here we do some sneaky shit by wrapping the generator with a custom function that initializes and calls next.
 			if(m.filter === undefined || m.filter(message)) {
 				try {
 					normalized.push({
@@ -186,5 +185,4 @@ function schedule(message : SlackMessage) : ActiveMinion[][] {
 	}
 
 	return scheduled_minions;
-
 }
