@@ -3,7 +3,8 @@ import * as uuid from 'node-uuid'
 import { EventEmitter } from 'events'
 
 import graph from './graph';
-import * as minions from './minions';
+//import * as minions from './minions';
+import * as minions from './minions/tree-sched';
 import { SlackMessage, SlackUser } from './types';
 
 // import nlc from './lib/nlc';

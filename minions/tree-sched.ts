@@ -1,4 +1,7 @@
-import { MinionModule, SlackMessage, ActiveMinion } from '../types'
+import { EventEmitter } from 'events';
+import { MinionModule, SlackMessage, ActiveMinion, MinionResult } from '../types'
+import hello from './hello';
+
 interface Node {
 	key: string,
 	activeMinion: ActiveMinion,
@@ -6,42 +9,98 @@ interface Node {
 	children: string[]
 }
 
-interface Tree {
-	rootRow: Map<string, Node>
-}
+/*
+there is a list of minions that each message is passed to.
 
-const minion_modules : MinionModule[] = [];
+each message either goes to an existing minion
+or we initialize a new one
 
-const schedule = (message : SlackMessage) : Map<string, Node>=> {
+so first we go down the list of required minions
+	look through all existing minions that have same key as required minion.
+		check if the minion context function returns true.
+			if true, check the filter function.
+				if filter true, push that minion into normalized minion array and continue to next required minion.
+				if filter false, remove minion from existing minion. instantiate new one and continue to next required minion
+			if false continue down list
+		instantiate new minion and move to next required minion
+
+now we have a normalized list of minions. schedule them, then execute
+*/
+
+const minion_modules : MinionModule[] = [
+	hello
+];
+let existing_minions : ActiveMinion[] = [];
+
+const schedule = (message : SlackMessage) : Map<string, Node> => {
 	const minion_map = new Map<string, Node>();
 
 	const formTree = (m : MinionModule) : void => {
-		const m_key = m.key(message) // this  needs to be not a function
+		const m_key = m.key
 		// first give minion_map an accurate picture of you.
 		if(minion_map.has(m_key)) {
 			const self = minion_map.get(m_key)
-			self.parents = m.requirements;
+			self.parents = m.requirements
+			if(self.activeMinion == undefined) {
+				self.activeMinion = {
+					key: m.key,
+					init: m.onMessage,
+					requirements: m.requirements || [],
+					filter: m.filter || (() => true),
+					contextMatch: () => true
+				}
+			}
 			minion_map.set(m_key, self)
 		} else {
-			minion_map.set(m_key, {
-				key: m_key,
-				activeMinion: undefined,
-				parents: m.requirements,
-				children: [] as string[]
-			})
+			// check if there's an existing minion for this context.
+			const existing_minion = existing_minions.find(e => e.key == m_key && e.contextMatch(message))
+
+			if(existing_minion) {
+				if(existing_minion.filter == undefined || existing_minion.filter(message)) {
+					minion_map.set(m_key, {
+						key: m_key,
+						activeMinion: existing_minion,
+						parents: existing_minion.requirements,
+						children: [] as string[]
+					})
+				} else {
+					existing_minions = existing_minions.filter(e => e.key == m_key && e.contextMatch(message));
+				}
+			} else {
+				// no existing minion - make a new one.
+				if(m.filter === undefined || m.filter(message)) {
+					minion_map.set(m_key, {
+						key: m_key,
+						activeMinion: {
+							key: m.key,
+							init: m.onMessage,
+							requirements: m.requirements || [],
+							filter: m.filter || (() => true),
+							contextMatch: () => true
+						},
+						parents: m.requirements || [],
+						children: [] as string[]
+					})
+				} else {
+					// not setting anything in map
+					return;
+				}
+			}
 		}
 
 		// set children on minion_map for things you require
-		m.requirements.forEach(req => {
-			if(minion_map.has(req)) {
-				const curr = minion_map.get(req)
-				curr.children.push(m_key);
-				minion_map.set(req, curr);
-			} else {
-				const curr : Node = { parents: [], children: [req], key: req, activeMinion: undefined }
-				minion_map.set(req, curr)
-			}
-		})
+		if(m.requirements) {
+			m.requirements.forEach(req => {
+				if(minion_map.has(req)) {
+					const curr = minion_map.get(req)
+					curr.children.push(m_key);
+					minion_map.set(req, curr);
+				} else {
+					const curr : Node = { parents: [], children: [req], key: req, activeMinion: undefined }
+					minion_map.set(req, curr)
+				}
+			})
+		}
 	}
 
 	minion_modules.forEach(formTree);
@@ -51,27 +110,50 @@ const schedule = (message : SlackMessage) : Map<string, Node>=> {
 	return minion_map;
 }
 
-async function dispatch(message : SlackMessage) {
+export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
 	const done_minions = new Set<string>();
 	const minion_tree = schedule(message);
+	console.log(minion_tree);
 
 	const initial = [...minion_tree.entries()].filter(([k, v]) => v.parents.length == 0);
 
 	let cumulativeMessage = message;
 
-	const recheck = (pMessage : SlackMessage) => {
+	const recheck = () => {
 		const remaining = [...minion_tree.entries()]
 			.filter(([key, node]) => !done_minions.has(key))
 			.forEach(([key, node]) => run(key, node))
 	}
 
 	const run = async (key : string, minionNode : Node) => {
-		const fn = minionNode.activeMinion.init || minionNode.activeMinion.generator.next
-		const res = await fn(message)
-		if(res.send !== undefined) {
-			
+		let iterResult : IteratorResult<Promise<MinionResult>>;
+		if(minionNode.activeMinion.init == undefined) {
+			iterResult = minionNode.activeMinion.generator.next(message);
+		} else {
+			iterResult = minionNode.activeMinion.init(message).next();
 		}
+		const res = await iterResult.value;
+
+		if(res && res.send) {
+			emitter.emit('send', res.text, message);
+		}
+
+		const existing_minion = existing_minions.find(e => e.key == key && e.contextMatch(message));
+		if(existing_minion) {
+			existing_minions = existing_minions.filter(e => e.key == key && e.contextMatch(message));
+		}
+		if(!iterResult.done) {
+			const mod_minion = {
+				key: minionNode.key,
+				generator: minionNode.activeMinion.generator,
+				requirements: res.requirements || [],
+				filter: res.filter || (() => true),
+				contextMatch: res.contextMatch || (() => true)
+			}
+			existing_minions.push(mod_minion);
+		}
+
 		done_minions.add(key)
 		if(done_minions.size < minion_tree.size)
 			recheck()

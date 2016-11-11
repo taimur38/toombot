@@ -7,7 +7,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 		filter: (msg : any) : boolean => true,
 		text: 'testing',
 		send: true,
-		requirements: ['context']
+		requirements: []
 	})
 
 	console.log('here')
@@ -27,7 +27,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 
 
 const mod : MinionModule = {
-	key: (msg: SlackMessage) => `${msg.user.id}-hello`,
+	key: 'hello',
 	onMessage
 }
 

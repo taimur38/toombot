@@ -1,5 +1,5 @@
 export interface MinionModule {
-	key: (msg : any) => string,
+	key: string,
 	onMessage: (msg : any) => Iterator<Promise<Object>>,
 	filter?: (msg : any) => boolean,
 	requirements?: string[]
@@ -11,14 +11,16 @@ export interface ActiveMinion {
 	init?: (msg: any) => Iterator<Promise<Object>>,
 	requirements: string[],
 	filter: (msg : any) => boolean,
-	key: string
+	key: string,
+	contextMatch: (msg : SlackMessage) => boolean
 }
 
 export interface MinionResult {
 	filter?: (msg : any) => boolean,
 	text?: string,
 	send?: boolean,
-	requirements?: string[]
+	requirements?: string[],
+	contextMatch?: (msg : SlackMessage) => boolean
 }
 
 export interface SlackMessage {
