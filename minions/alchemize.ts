@@ -7,7 +7,6 @@ export interface Response {
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
-	console.log('here')
 	const text = message.text;
 
 	return alchemy.getAllTheThings(text)
@@ -21,7 +20,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
 export default {
 	onMessage,
-	key: (msg : SlackMessage) => 'alchemy',
+	key: 'alchemy',
 	requirements: [],
 	filter: (msg : SlackMessage) => true
 }

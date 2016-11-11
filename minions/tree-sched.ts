@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { MinionModule, SlackMessage, ActiveMinion, MinionResult } from '../types'
 import hello from './hello';
+import alchemize from './alchemize'
 
 interface Node {
 	key: string,
@@ -28,8 +29,10 @@ now we have a normalized list of minions. schedule them, then execute
 */
 
 const minion_modules : MinionModule[] = [
-	hello
+	hello,
+	alchemize
 ];
+
 let existing_minions : ActiveMinion[] = [];
 
 const schedule = (message : SlackMessage) : Map<string, Node> => {
@@ -39,6 +42,7 @@ const schedule = (message : SlackMessage) : Map<string, Node> => {
 		const m_key = m.key
 		// first give minion_map an accurate picture of you.
 		if(minion_map.has(m_key)) {
+			console.log('i already exist',m_key)
 			const self = minion_map.get(m_key)
 			self.parents = m.requirements
 			if(self.activeMinion == undefined) {
@@ -64,6 +68,7 @@ const schedule = (message : SlackMessage) : Map<string, Node> => {
 						children: [] as string[]
 					})
 				} else {
+					console.log('get rid of minion', m_key);
 					existing_minions = existing_minions.filter(e => e.key == m_key && e.contextMatch(message));
 				}
 			} else {
@@ -121,32 +126,37 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 	let cumulativeMessage = message;
 
 	const recheck = () => {
+		console.log('rechecking')
 		const remaining = [...minion_tree.entries()]
 			.filter(([key, node]) => !done_minions.has(key))
-			.forEach(([key, node]) => run(key, node))
+			.forEach(([key, node]) => {
+				if(node.parents.every(k => done_minions.has(k))) {
+					console.log('running', key);
+					run(key, node)
+				}
+			})
 	}
 
 	const run = async (key : string, minionNode : Node) => {
-		let iterResult : IteratorResult<Promise<MinionResult>>;
-		if(minionNode.activeMinion.init == undefined) {
-			iterResult = minionNode.activeMinion.generator.next(message);
-		} else {
-			iterResult = minionNode.activeMinion.init(message).next();
-		}
+		let generator = minionNode.activeMinion.init ? minionNode.activeMinion.init(cumulativeMessage) : minionNode.activeMinion.generator;
+
+		const iterResult = generator.next(cumulativeMessage);
 		const res = await iterResult.value;
 
 		if(res && res.send) {
+			console.log('sending', res);
 			emitter.emit('send', res.text, message);
 		}
 
-		const existing_minion = existing_minions.find(e => e.key == key && e.contextMatch(message));
+		const existing_minion = existing_minions.find(e => e.key == key && e.contextMatch(cumulativeMessage));
 		if(existing_minion) {
-			existing_minions = existing_minions.filter(e => e.key == key && e.contextMatch(message));
+			console.log('existing minion removed');
+			existing_minions = existing_minions.filter(e => e.key == key && e.contextMatch(cumulativeMessage));
 		}
 		if(!iterResult.done) {
 			const mod_minion = {
 				key: minionNode.key,
-				generator: minionNode.activeMinion.generator,
+				generator: generator,
 				requirements: res.requirements || [],
 				filter: res.filter || (() => true),
 				contextMatch: res.contextMatch || (() => true)
@@ -154,6 +164,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 			existing_minions.push(mod_minion);
 		}
 
+		cumulativeMessage = Object.assign({}, cumulativeMessage, res);
 		done_minions.add(key)
 		if(done_minions.size < minion_tree.size)
 			recheck()
