@@ -41,9 +41,8 @@ const lookupSymbol = (word : string) => axios.get(`http://d.yimg.com/aq/autoc?qu
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'companies',
+	key: 'companies',
 	requirements: ['alchemy'],
-	filter: (msg : SlackMessage) => true
 }
 
 export default mod;

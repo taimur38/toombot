@@ -22,5 +22,4 @@ export default {
 	onMessage,
 	key: 'alchemy',
 	requirements: [],
-	filter: (msg : SlackMessage) => true
 }

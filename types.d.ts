@@ -15,7 +15,7 @@ export interface ActiveMinion {
 	contextMatch: (msg : SlackMessage) => boolean
 }
 
-export interface MinionResult {
+export interface MinionResult extends Object {
 	filter?: (msg : any) => boolean,
 	text?: string,
 	send?: boolean,

@@ -51,6 +51,7 @@ rtm.on(RTM_EVENTS.DISCONNECT, (err : any) => {
 class MyEmitter extends EventEmitter {};
 
 const myEmitter = new MyEmitter();
+
 rtm.on(RTM_EVENTS.MESSAGE, (message : any) => {
 	if(message.type != 'message' || message.subtype) {
 		return;

@@ -9,7 +9,7 @@ export interface Response {
 	context: AllTheThings
 }
 
-function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
+function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult & Response>> {
 
 	let previousMessages: SlackMessage[] = [message];
 
@@ -20,10 +20,12 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
 		const nextMessage = yield getAllTheThings(transcript)
 			.then(alchemized => ({
-				context: alchemized
+				context: alchemized,
+				contextMatch: (msg : SlackMessage) => msg.channel.id == message.channel.id
 			}))
 			.catch(err => {
 				console.error('context err', err)
+				return undefined;
 			})
 
 		previousMessages.push(nextMessage);
@@ -34,7 +36,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
 const mod : MinionModule = {
 	onMessage,
-	key: msg => key
+	key
 }
 
 export default mod;

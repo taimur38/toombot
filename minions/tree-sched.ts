@@ -2,6 +2,8 @@ import { EventEmitter } from 'events';
 import { MinionModule, SlackMessage, ActiveMinion, MinionResult } from '../types'
 import hello from './hello';
 import alchemize from './alchemize'
+import companies from './companies';
+import context from './context';
 
 interface Node {
 	key: string,
@@ -30,7 +32,9 @@ now we have a normalized list of minions. schedule them, then execute
 
 const minion_modules : MinionModule[] = [
 	hello,
-	alchemize
+	alchemize,
+	companies,
+	context
 ];
 
 let existing_minions : ActiveMinion[] = [];
@@ -42,7 +46,7 @@ const schedule = (message : SlackMessage) : Map<string, Node> => {
 		const m_key = m.key
 		// first give minion_map an accurate picture of you.
 		if(minion_map.has(m_key)) {
-			console.log('i already exist',m_key)
+			console.log('i already exist', m_key)
 			const self = minion_map.get(m_key)
 			self.parents = m.requirements
 			if(self.activeMinion == undefined) {
@@ -69,9 +73,12 @@ const schedule = (message : SlackMessage) : Map<string, Node> => {
 					})
 				} else {
 					console.log('get rid of minion', m_key);
-					existing_minions = existing_minions.filter(e => e.key == m_key && e.contextMatch(message));
+					existing_minions = existing_minions.filter(e => !(e.key == m_key && e.contextMatch(message)));
 				}
-			} else {
+			} 
+
+			if(!minion_map.has(m_key))
+			{
 				// no existing minion - make a new one.
 				if(m.filter === undefined || m.filter(message)) {
 					minion_map.set(m_key, {
@@ -118,8 +125,8 @@ const schedule = (message : SlackMessage) : Map<string, Node> => {
 export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
 	const done_minions = new Set<string>();
+	const inprocess_minions = new Set<string>();
 	const minion_tree = schedule(message);
-	console.log(minion_tree);
 
 	const initial = [...minion_tree.entries()].filter(([k, v]) => v.parents.length == 0);
 
@@ -128,7 +135,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 	const recheck = () => {
 		console.log('rechecking')
 		const remaining = [...minion_tree.entries()]
-			.filter(([key, node]) => !done_minions.has(key))
+			.filter(([key, node]) => !done_minions.has(key) && !inprocess_minions.has(key))
 			.forEach(([key, node]) => {
 				if(node.parents.every(k => done_minions.has(k))) {
 					console.log('running', key);
@@ -138,6 +145,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 	}
 
 	const run = async (key : string, minionNode : Node) => {
+		inprocess_minions.add(key);
 		let generator = minionNode.activeMinion.init ? minionNode.activeMinion.init(cumulativeMessage) : minionNode.activeMinion.generator;
 
 		const iterResult = generator.next(cumulativeMessage);
@@ -150,10 +158,11 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
 		const existing_minion = existing_minions.find(e => e.key == key && e.contextMatch(cumulativeMessage));
 		if(existing_minion) {
-			console.log('existing minion removed');
-			existing_minions = existing_minions.filter(e => e.key == key && e.contextMatch(cumulativeMessage));
+			console.log('existing minion removed', existing_minion.key);
+			existing_minions = existing_minions.filter(e => !(e.key == e.key && e.contextMatch(cumulativeMessage)));
 		}
 		if(!iterResult.done) {
+			console.log('not yet done', minionNode.key);
 			const mod_minion = {
 				key: minionNode.key,
 				generator: generator,
@@ -162,12 +171,19 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 				contextMatch: res.contextMatch || (() => true)
 			}
 			existing_minions.push(mod_minion);
+			console.log(existing_minions);
 		}
 
-		cumulativeMessage = Object.assign({}, cumulativeMessage, res);
+		if(res[minionNode.key] == undefined)
+			console.log(minionNode.key, "not set");
+
+		cumulativeMessage = Object.assign({}, cumulativeMessage, { [key]: (res[minionNode.key] as any) });
+		inprocess_minions.delete(key);
 		done_minions.add(key)
 		if(done_minions.size < minion_tree.size)
 			recheck()
+		else
+			console.log('done');
 	}
 
 	return Promise.all(initial.map(([k, v]) => run(k, v)))

@@ -10,7 +10,6 @@ import isRepost from './repost';
 const onMessage = (message : SlackMessage) => {
 	const session = driver.session();
 
-	console.log('running onMessage....')
 	return session.run(`
 		MERGE (u:User {id: {u_id} })
 		SET

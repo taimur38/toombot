@@ -1,29 +1,23 @@
 import { MinionModule, MinionResult, SlackMessage } from '../types';
-import * as alchemy from './alchemize'
+import * as context from './context'
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 
-	const response : SlackMessage & alchemy.Response = yield Promise.resolve({
-		filter: (msg : any) : boolean => true,
+	const response : SlackMessage & context.Response = yield Promise.resolve({
 		text: 'testing',
 		send: true,
-		requirements: ['alchemy'],
+		requirements: ['context'],
 		contextMatch: (msg : SlackMessage) => msg.user.id == message.user.id && msg.channel.id == message.channel.id
 	})
 
-	console.log('here!!!!')
-
 	yield Promise.resolve({
-		text: `${response.alchemy.concepts.length} alchemy concepts in context`,
+		text: `${response.context.concepts.length} alchemy concepts in context`,
 		send: true,
-		filter: (msg : SlackMessage) => {
-			console.log('filtererererr')
-			return msg.text.indexOf('what are they') > -1
-		}
+		filter: (msg : SlackMessage) => msg.text.toLowerCase().indexOf('what are they') > -1
 	});
 
 	return Promise.resolve({
-		text: `${response.alchemy.concepts.map(c => c.text).join(',')}`,
+		text: `${response.context.concepts.map(c => c.text).join(',')}`,
 		send: true
 	})
 

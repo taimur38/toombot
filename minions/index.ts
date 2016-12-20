@@ -49,6 +49,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 	let processed_message = message;
 	for(let minions of scheduled_minions) {
 		let responses : FormattedMinionResponse[]
+		console.log(minions);
 		try {
 			i += 1;
 			console.log('round ', i)
