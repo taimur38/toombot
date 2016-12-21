@@ -47,8 +47,7 @@ const minion_modules : MinionModule[] = [
 	reddit,
 	graphMsg,
 	graphMeta,
-	locations,
-	tonalize
+	locations
 ];
 
 let existing_minions : ActiveMinion[] = [];
