@@ -159,7 +159,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 		const existing_minion = existing_minions.find(e => e.key == key && e.contextMatch(cumulativeMessage));
 		if(existing_minion) {
 			console.log('existing minion removed', existing_minion.key);
-			existing_minions = existing_minions.filter(e => !(e.key == e.key && e.contextMatch(cumulativeMessage)));
+			existing_minions = existing_minions.filter(e => !(e.key == existing_minion.key && e.contextMatch(cumulativeMessage)));
 		}
 		if(!iterResult.done) {
 			console.log('not yet done', minionNode.key);
