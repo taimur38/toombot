@@ -168,7 +168,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 				generator: generator,
 				requirements: res.requirements || [],
 				filter: res.filter || (() => true),
-				contextMatch: res.contextMatch || (() => true)
+				contextMatch: res.contextMatch || minionNode.activeMinion.contextMatch || (( nMsg : SlackMessage) => nMsg.channel.id === cumulativeMessage.channel.id)
 			}
 			existing_minions.push(mod_minion);
 			console.log(existing_minions);

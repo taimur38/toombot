@@ -13,7 +13,8 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 	yield Promise.resolve({
 		text: `${response.context.concepts.length} alchemy concepts in context`,
 		send: true,
-		filter: (msg : SlackMessage) => msg.text.toLowerCase().indexOf('what are they') > -1
+		filter: (msg : SlackMessage) => msg.text.toLowerCase().indexOf('what are they') > -1,
+		contextMatch: (msg : SlackMessage) => msg.user.id == message.user.id && msg.channel.id == message.channel.id
 	});
 
 	return Promise.resolve({
