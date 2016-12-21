@@ -45,8 +45,8 @@ const minion_modules : MinionModule[] = [
 	links,
 	linkMeta,
 	reddit,
-	graphMeta,
 	graphMsg,
+	graphMeta,
 	locations,
 	tonalize
 ];
