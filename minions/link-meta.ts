@@ -6,11 +6,15 @@ import * as links from './links'
 
 const parser = new DOMParser({
 	errorHandler: {
-		warning: () => {}
+		warning: () => {},
+		error: (e) => { errors += 1; if(errors > MAX_ERRORS) throw new Error(e); }
 	}
 });
 
+const MAX_ERRORS = 200;
 const key = 'link_meta'
+
+let errors = 0;
 
 interface FormattedTags {
 	type: string,
@@ -23,6 +27,7 @@ export interface Response {
 
 function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<Response>> {
 
+	errors = 0;
 	if(message.links.length == 0)
 		return Promise.resolve({ [key]: [] })
 
@@ -37,7 +42,7 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 			}
 		})
 		.then(obj => ({
-			success: (<any>obj).res == undefined,
+			success: (<any>obj).res != undefined,
 			link: obj.link,
 			res: (<any>obj).res as axios.Response,
 		}))
@@ -46,7 +51,7 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 	return Promise.all(requestPromises)
 		.then(results => results.map(({ success, res, link }) => {
 
-			if(success){
+			if(!success){
 				return {
 					link,
 					meta: []
@@ -73,13 +78,13 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 					meta: []
 				}
 			}
-		})
-	)
+		}))
+		.then(links => ({ link_meta: links }))
 }
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'link_meta',
+	key: 'link_meta',
 	requirements: ['links']
 }
 

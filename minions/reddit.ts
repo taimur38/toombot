@@ -89,7 +89,7 @@ export const getComments = (permalink : SlackMessage) => session.get(`${permalin
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'reddit',
+	key: 'reddit',
 	requirements: ['links']
 }
 

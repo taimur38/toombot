@@ -40,7 +40,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'links'
+	key: 'links'
 }
 
 export default mod;

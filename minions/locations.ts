@@ -59,7 +59,7 @@ function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Prom
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'locations',
+	key: 'locations',
 	requirements: ['alchemy']
 }
 

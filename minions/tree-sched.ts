@@ -4,6 +4,13 @@ import hello from './hello';
 import alchemize from './alchemize'
 import companies from './companies';
 import context from './context';
+import links from './links';
+import linkMeta from './link-meta';
+import reddit from './reddit';
+import graphMeta from './graph-meta';
+import graphMsg from './graph-msg'
+import locations from './locations'
+import tonalize from './tonalize'
 
 interface Node {
 	key: string,
@@ -34,7 +41,14 @@ const minion_modules : MinionModule[] = [
 	hello,
 	alchemize,
 	companies,
-	context
+	context,
+	links,
+	linkMeta,
+	reddit,
+	graphMeta,
+	graphMsg,
+	locations,
+	tonalize
 ];
 
 let existing_minions : ActiveMinion[] = [];

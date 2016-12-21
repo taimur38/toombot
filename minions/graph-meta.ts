@@ -225,7 +225,7 @@ const linkize = (message : Message) => {
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'graphMeta',
+	key: 'graphMeta',
 	requirements: ['graphMsg', 'alchemy', 'companies']
 };
 

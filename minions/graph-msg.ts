@@ -17,7 +17,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'graphMsg'
+	key: 'graphMsg'
 }
 
 export default mod;
