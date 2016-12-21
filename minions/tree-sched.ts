@@ -38,7 +38,7 @@ now we have a normalized list of minions. schedule them, then execute
 */
 
 const minion_modules : MinionModule[] = [
-	hello,
+	//hello,
 	alchemize,
 	companies,
 	context,
