@@ -114,7 +114,7 @@ export interface AllTheThings {
 	dates: any[]
 }
 
-export function getAllTheThings(content : string, contentType? : string, sanitize? : boolean) : Promise<AllTheThings> {
+export function getAllTheThings(content : string, contentType? : string, sanitize? : boolean, timeout?: number) : Promise<AllTheThings> {
 	sanitize = sanitize || false;
 	contentType = contentType || 'text';
 

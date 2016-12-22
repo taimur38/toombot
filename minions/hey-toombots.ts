@@ -1,7 +1,10 @@
-import axios from 'axios';
+import * as axios from 'axios';
 import { bot } from '../constants'
 import * as analyzer from './search/index'
 import * as commenter from './reddit'
+
+import { MinionModule, MinionResult, SlackMessage } from '../types'
+import * as context from './context'
 
 const neo4j = require('neo4j-driver').v1;
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
@@ -13,12 +16,15 @@ const session = axios.create({
 	}
 })
 
-function* onMessage(message) {
+function* onMessage(message : SlackMessage ) : Iterator<Promise<MinionResult>> {
 
-	const response = yield {
+	const response = yield Promise.resolve({
+		send: true,
 		text: 'hey',
-		filter: msg => msg.text.indexOf('thoughts') > -1 || msg.text.indexOf('think about') > -1 || msg.text.indexOf('what is') > -1 || msg.text.indexOf('testing') > -1 || msg.text.indexOf('fact') > -1 || msg.text.indexOf('learned') > -1
-	};
+		filter: (msg : SlackMessage) => msg.text.toLowerCase().indexOf('thoughts') > -1 || msg.text.toLowerCase().indexOf('think about') > -1 || msg.text.indexOf('what is') > -1 || msg.text.indexOf('testing') > -1 || msg.text.toLowerCase().indexOf('fact') > -1 || msg.text.toLowerCase().indexOf('learned') > -1,
+		contextMatch: (msg : SlackMessage) => msg.user.id == message.user.id && msg.channel.id == message.channel.id,
+		requirements: ['context', 'alchemy', 'links']
+	});
 
 	if(response.text.indexOf('thoughts') > -1) { //context
 		return thoughts(response)
@@ -32,27 +38,11 @@ function* onMessage(message) {
 	else if(response.text.indexOf('fact') > -1 || response.text.indexOf('learned') > -1) {
 		return getFact(response)
 	}
-	else if(response.text.indexOf('testing') > -1) {
-		const g = testing(message);
-		while(true) {
-			const output = g.next();
-			console.log(output)
-			if(output.done) {
-				return output.value;
-			}
-			yield output.value;
-		}
-	}
 	else
-		return;
+		return undefined;
 }
 
-function* testing(message) {
-	yield { text: 'hi', filter: msg => true };
-	yield { text: 'go away', filter: msg => true };
-}
-
-function getFact(message) {
+function getFact(message : SlackMessage) : Promise<MinionResult> {
 	const session = driver.session();
 
 	return session.run(`
@@ -65,33 +55,35 @@ function getFact(message) {
 	`, {
 		c_id: message.channel.id
 	})
-	.then(res => {
+	.then((res : any) => {
 		const record = res.records[0]
 		session.close();
 		if(!record) {
 			return false;
 		}
 		console.log(record.get('username'), record.get('fact'))
-		return { text: `I learned ${record.get('fact')} from ${record.get('username')}`}
+		return { text: `I learned ${record.get('fact')} from ${record.get('username')}`, send: true }
 	})
-	.catch(err => {
+	.catch((err : any) => {
 		session.close();
 		console.error(err)
 	})
 }
 
-function specificThoughts(response) {
+function specificThoughts(response : SlackMessage) : Promise<MinionResult> {
+	console.log('here')
 	let topic = response.text.split("think about")[1].replace("?", "");
 	return session.get(`/search.json?q=${topic}+nsfw:no+self:no`)
 		.then(rsp => rsp.data)
-		.then(results => {
+		.then((results : any) => {
 			let promises = [];
 			const posts = results.data.children;
+			console.log('HERE')
 
 			if(posts.length == 0)
 				return false;
 
-			let post = posts.filter(post => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)[0];
+			let post = posts.filter((post : any) => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)[0];
 
 			promises.push(Promise.resolve(post.data.title + ': ' + post.data.url));
 
@@ -107,33 +99,33 @@ function specificThoughts(response) {
 
 			return Promise.all(promises)
 		})
-		.then(results => {
+		.then((results : any) => {
 			let final_answer = '';
 			for(let result of results) {
 				if(result)
 					final_answer = final_answer + "\n" + result;
 			}
-			return {text: final_answer};
+			return {text: final_answer, send: true};
 		})
-		.catch(err => {
+		.catch((err : any) => {
 			console.log(err);
-			return {text: 'i have no thoughts on the matter'}
+			return { text: 'i have no thoughts on the matter', send: true }
 		})
 }
 
-function wiki(response) {
+function wiki(response : SlackMessage) : Promise<MinionResult> {
 	let topic = response.text.split("what is ")[1].replace("?", "").replace(" ", "%20");
-	return {text: "https://en.wikipedia.org/wiki/" + topic};
+	return Promise.resolve({ send: true, text: "https://en.wikipedia.org/wiki/" + topic });
 }
 
-function thoughts(response) {
+function thoughts(response : SlackMessage & context.Response) : Promise<MinionResult> {
 	let concepts = response.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
 	let entities = response.context.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
 
 	let concept_merge = [...entities, ...concepts].slice(0,2).reduce((all, c) => `${all} ${c.text}`, '');
 
 	if(!concept_merge)
-		return { text: 'i have no thoughts on the matter' }
+		return Promise.resolve({ text: 'i have no thoughts on the matter', send: true })
 
 	return session.get(`/search.json?q=${concept_merge}+nsfw:no+self:no`)
 		.then(rsp => rsp.data)
@@ -142,7 +134,7 @@ function thoughts(response) {
 			const posts = results.data.children;
 
 			if(posts.length == 0)
-				return false;
+				return undefined;
 			return posts
 				.filter(post => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)
 				.map(post => ({
@@ -157,15 +149,17 @@ function thoughts(response) {
 		.then(flattened_results               => Promise.all(flattened_results.map(analyzer.analyze)))
 		.then(analyzed_results                => analyzer.rank(analyzed_results, response, analyzer.thresholds))
 		.then(ranked                          => ranked[0])
-		.then(winner                          => winner == undefined ? false : {text: winner.message})
+		.then(winner                          => winner == undefined ? undefined : { text: winner.message, send: true })
 		.catch(err => {
-			return { text: 'i have no thoughts on the matter' }
+			return { text: 'i have no thoughts on the matter', send: true }
 		})
 
 }
 
-module.exports = {
+const mod : MinionModule = {
 	onMessage,
-	key: msg => msg.user.id + '-hey',
+	key: 'hey',
 	filter: msg => msg.text.startsWith(`hey ${bot.name}`) && msg.text.indexOf(bot.name) > -1
 }
+
+export default mod;

@@ -1,4 +1,6 @@
-const axios = require('axios');
+import * as axios from 'axios';
+import { SlackMessage, MinionResult, MinionModule } from '../types'
+import * as alchemize from './alchemize'
 
 const session = axios.create({
 	baseURL: 'http://reddit.com',
@@ -6,11 +8,7 @@ const session = axios.create({
 		'User-Agent': '/u/taimur38'
 	}
 })
-const onMessage = message => {
-
-	if(!message.alchemy || message.text.split(' ').length < 5)
-		return Promise.resolve(false);
-
+function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Promise<MinionResult>> {
 
 	let concepts = message.alchemy.concepts.filter((c) => parseFloat(c.relevance) > 0.7);
 	let entities = message.alchemy.entities.filter((c) => parseFloat(c.relevance) > 0.7 || (c.type == 'Person' && parseFloat(c.relevance) > 0.5));
@@ -40,6 +38,11 @@ const onMessage = message => {
 
 }
 
-module.exports = {
-	onMessage
+const mod : MinionModule = {
+	onMessage,
+	key: 'redditEnrichment',
+	requirements: ['alchemy'],
+	filter: (msg : SlackMessage) => msg.text.split(' ').length > 5
 }
+
+export default mod;
