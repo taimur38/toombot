@@ -206,10 +206,11 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 			console.log(existing_minions);
 		}
 
-		if(res[minionNode.key] == undefined)
+		if(res && res[minionNode.key])
+			cumulativeMessage = Object.assign({}, cumulativeMessage, { [key]: (res[minionNode.key] as any) });
+		else
 			console.log(minionNode.key, "not set");
 
-		cumulativeMessage = Object.assign({}, cumulativeMessage, { [key]: (res[minionNode.key] as any) });
 		inprocess_minions.delete(key);
 		done_minions.add(key)
 		if(done_minions.size < minion_tree.size)
