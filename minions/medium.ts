@@ -5,6 +5,8 @@ import * as links from './links'
 function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<MinionResult>> {
 
 	const links = message.links.filter(l => l.domain == "medium.com");
+	if(links.length == 0)
+		return Promise.resolve(undefined)
 
 	const splits = links[0].url.split('/');
 	const id = splits[splits.length - 1].split('#')[0];
@@ -20,7 +22,6 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 const mod : MinionModule = {
 	onMessage,
 	key: 'medium',
-	filter: (msg : SlackMessage & links.Response) => msg.links.some(l => l.domain == 'medium.com'),
 	requirements: ['links']
 }
 

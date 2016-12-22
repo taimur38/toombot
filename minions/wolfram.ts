@@ -11,8 +11,10 @@ const parser = new dom();
 
 function* onMessage(message : SlackMessage & isQuestion.Response) : Iterator<Promise<MinionResult>> {
 
-	const query = message.text;
+	if(!message.isQuestion)
+		return Promise.resolve(undefined);
 
+	const query = message.text;
 	return axios.get(`http://api.wolframalpha.com/v2/query?appid=${wolframAppID}&input=${query}&format=plaintext`)
 		.then(res => {
 			const xml = parser.parseFromString(res.data);
@@ -20,7 +22,7 @@ function* onMessage(message : SlackMessage & isQuestion.Response) : Iterator<Pro
 			if(pods.length == 0)
 				return false;
 
-			return { text: pods[0].firstChild.data };
+			return { text: pods[0].firstChild.data, send: true };
 		})
 		.catch(err => { console.log(err); return false; })
 
@@ -28,7 +30,6 @@ function* onMessage(message : SlackMessage & isQuestion.Response) : Iterator<Pro
 
 const mod : MinionModule = {
 	onMessage,
-	filter: (msg : SlackMessage & isQuestion.Response) => msg.isQuestion,
 	key: 'wolfram',
 	requirements: ['isQuestion']
 }

@@ -55,7 +55,10 @@ const minion_modules : MinionModule[] = [
 	locations,
 	heyToombots,
 	isQuestion,
-	redditEnrichment
+	redditEnrichment,
+	medium,
+	verge,
+	wolfram
 ];
 
 let existing_minions : ActiveMinion[] = [];
@@ -148,7 +151,13 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 	const done_minions = new Set<string>();
 	const inprocess_minions = new Set<string>();
 	console.log('scheduling')
-	const minion_tree = schedule(message);
+	let minion_tree : Map<string, Node>;
+	try {
+		minion_tree = schedule(message);
+	} catch(e) {
+		console.error(e);
+		return Promise.reject(e);
+	}
 	console.log('scheduled')
 
 	const initial = [...minion_tree.entries()].filter(([k, v]) => v.parents.length == 0);

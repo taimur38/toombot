@@ -10,6 +10,9 @@ const parser = new dom();
 function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<MinionResult>> {
 	const relevant_links = message.links.filter(x => x.domain.match(/theverge.com|recode.net/));
 
+	if(relevant_links.length == 0)
+		return Promise.resolve(undefined);
+
 	return axios.get(relevant_links[0].url)
 		.then(rsp => {
 
@@ -56,11 +59,6 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 const mod : MinionModule = {
 	onMessage,
 	key: 'verge',
-	filter: (msg : SlackMessage & links.Response) => {
-		const relevant_links = msg.links.filter(x => x.domain.match(/theverge.com|recode.net/));
-
-		return relevant_links.length > 0;
-	},
 	requirements: ['links']
 }
 
