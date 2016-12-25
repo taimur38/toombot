@@ -1,7 +1,6 @@
 import { MinionModule, MinionResult, SlackMessage } from '../types'
 import { AllTheThings, getAllTheThings } from '../lib/alchemy'
 
-let contexts = {}; //key is channel, value is previous transcripts
 const interval = 5 * 60 * 1000; // 5 minutes
 
 const key = 'context'
@@ -30,7 +29,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult & Re
 
 		previousMessages.push(nextMessage);
 		previousMessages = previousMessages
-			.filter(t => t.timestamp.getTime() > message.timestamp.getTime() - interval)
+			.filter(t =>  nextMessage.timestamp.getTime() - t.timestamp.getTime() < interval)
 	}
 }
 
