@@ -5,6 +5,6 @@ run mkdir -p /code
 WORKDIR /code
 
 COPY . /code/
-RUN npm install --global typescript && npm install 
+RUN npm install --global typescript && npm install && tsc -p .
 
 CMD ["npm", "start"]
