@@ -3,3 +3,4 @@ npm-debug.log
 set-env.sh
 Mod-Dockerfile
 build
+build.sh
