@@ -1,9 +1,10 @@
 import { classify } from '../lib/visual-recognition'
 import * as linkMeta from './link-meta'
 import { SlackMessage, MinionModule } from '../types';
+import { classifier } from '../lib/visual-recognition'
 
-interface Response {
-	imageTags: any
+export interface Response {
+	imageTags: classifier[]
 }
 
 function* onMessage(message : SlackMessage & linkMeta.Response) : Iterator<Promise<Response>> {
@@ -13,16 +14,14 @@ function* onMessage(message : SlackMessage & linkMeta.Response) : Iterator<Promi
 		return Promise.resolve();
 
 	const image_link = message.link_meta[0].meta.find(m => m.type.indexOf('image') > -1);
-	console.log(image_link);
+	console.log(image_link)
 
-	if(image_link.label.match(/png|jpg|jpeg|gif/)) {
-		return classify(image_link.label)
-			.then(things => ({ imageTags: things }))
-			.catch(err => {
-				console.log("Preprocessor: " + err);
-			})
-		}
-	return Promise.resolve();
+	return classify(image_link.label)
+		.then(x => { console.log(x.classifiers); return x; })
+		.then(things => ({ imageTags: things.classifiers }))
+		.catch(err => {
+			console.log("Preprocessor: " + err);
+		})
 }
 
 const mod : MinionModule = {

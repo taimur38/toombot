@@ -10,15 +10,12 @@ const version = '2016-05-20'
 
 export async function classify(imageUrl : string) : Promise<classifiedImage> {
 
-    const data = new FormData();
-    data.append('url', imageUrl);
-
     try {
-        const rsp = await session.post(`/v3/classify?api_key=${visualRecognitionAPIKey}&version=${version}`, data);
-        console.log(rsp.data);
+        const rsp = await session.get(`/v3/classify?api_key=${visualRecognitionAPIKey}&version=${version}&url=${imageUrl}`);
+        //const rsp = await session.post(`/v3/classify?api_key=${visualRecognitionAPIKey}&version=${version}`, data);
         const payload = rsp.data as classifyResponse
 
-        return payload[0];
+        return payload.images[0];
 
     } catch(e) {
 
@@ -29,16 +26,21 @@ export async function classify(imageUrl : string) : Promise<classifiedImage> {
 }
 
 interface classifyResponse {
+    custom_classes: number,
     images: classifiedImage[]
 }
 
-interface classifiedImage {
+export interface classifiedImage {
 
-    classifiers: {
-        classes: {
-            class: string,
-            score: number
-        }[]
-    }[],
+    classifiers: classifier[],
     image: string
+}
+
+export interface classifier {
+    classes: {
+        class: string,
+        score: number,
+        type_hierarchy?: string
+    }[]
+
 }

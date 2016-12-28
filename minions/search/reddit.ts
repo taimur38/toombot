@@ -16,7 +16,7 @@ const reddit_session = axios.create({
 	timeout: 3000
 })
 
-const search = (message : SlackMessage & context.Response & alchemized.Response) : Promise<SearchResult[]> => {
+export const search = (message : SlackMessage & context.Response & alchemized.Response) : Promise<SearchResult[]> => {
 
 	const context = message.context;
 	console.log(message)
@@ -63,8 +63,4 @@ const search = (message : SlackMessage & context.Response & alchemized.Response)
 				.slice(0,10);
 		})
 		.catch(err => { console.log('reddit error', err); return undefined; }) as Promise<SearchResult[]>
-}
-
-module.exports = {
-	search
 }

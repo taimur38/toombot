@@ -4,8 +4,9 @@ import * as context from '../context'
 import * as alchemize from '../alchemize'
 import * as links from '../links'
 
+import * as reddit from './reddit'
 const searchers = [
-	require('./reddit'),
+	reddit
 ]
 
 const thresholds = {
