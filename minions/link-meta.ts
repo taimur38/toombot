@@ -1,6 +1,6 @@
-import * as axios from 'axios';
 import { DOMParser } from 'xmldom'
 import * as xpath from 'xpath';
+import * as axios from 'axios';
 import { SlackMessage, MinionModule } from '../types'
 import * as links from './links'
 
@@ -38,13 +38,14 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 		.catch(err => {
 			console.error('couldnt get link', link, err);
 			return {
-				link
+				link,
+				res: undefined
 			}
 		})
 		.then(obj => ({
 			success: (<any>obj).res != undefined,
 			link: obj.link,
-			res: (<any>obj).res as axios.Response,
+			res:  obj.res,
 		}))
 	);
 
