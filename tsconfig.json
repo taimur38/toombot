@@ -1,8 +1,8 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
-		"noImplicitAny": true,
-		"noImplicitReturns": true,
+		"noImplicitAny": false,
+		"noImplicitReturns": false,
 		"pretty": true,
 		"target": "es6",
 		"outDir": "build",

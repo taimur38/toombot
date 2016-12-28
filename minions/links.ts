@@ -35,6 +35,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 				url: l,
 				domain: l.split('?')[0].split('/')[2].toLowerCase()
 			}))
+			.map(x => { console.log(x); return x })
 	})
 }
 

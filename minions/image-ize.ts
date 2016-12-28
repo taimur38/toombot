@@ -1,33 +1,35 @@
-import alchemy from '../lib/alchemy';
-import * as links from './links'
+import { classify } from '../lib/visual-recognition'
+import * as linkMeta from './link-meta'
 import { SlackMessage, MinionModule } from '../types';
+import { classifier } from '../lib/visual-recognition'
 
-interface Response {
-	imageTags: any
+export interface Response {
+	imageTags: classifier[]
 }
 
-function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<Response>> {
+function* onMessage(message : SlackMessage & linkMeta.Response) : Iterator<Promise<Response>> {
 
-	const links = message.links;
+	const links = message.link_meta;
 	if(links.length == 0)
 		return Promise.resolve();
 
-	const image_link = message.links[0].url;
+	const image_link = message.link_meta[0].meta.find(m => m.type.indexOf('image') > -1);
 
-	if(image_link.match(/png|jpg|jpeg|gif/)) {
-		return alchemy.getImageKeywords(image_link)
-			.then(things => ({ imageTags: things }))
-			.catch(err => {
-				console.log("Preprocessor: " + err);
-			})
-		}
-	return Promise.resolve();
+	if(image_link == undefined)
+		return Promise.resolve()
+
+	return classify(image_link.label)
+		.then(x => { console.log(x.classifiers); return x; })
+		.then(things => ({ imageTags: things.classifiers }))
+		.catch(err => {
+			console.log("Preprocessor: " + err);
+		})
 }
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'imageTags',
-	requirements: ['links']
+	key: 'imageTags',
+	requirements: ['link_meta']
 }
 
 export default mod;

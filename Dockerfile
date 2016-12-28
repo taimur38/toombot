@@ -4,9 +4,7 @@ run mkdir -p /code
 
 WORKDIR /code
 
-COPY package.json /code/
-COPY . /code
-
-EXPOSE 3000
+COPY . /code/
+RUN npm install --global typescript && npm install && tsc -p . ; exit 0
 
 CMD ["npm", "start"]
