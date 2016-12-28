@@ -1,4 +1,8 @@
-const alchemy = require('../../lib/alchemy')
+import * as alchemy from '../../lib/alchemy'
+import { MinionModule, MinionResult, SlackMessage } from '../../types'
+import * as context from '../context'
+import * as alchemize from '../alchemize'
+import * as links from '../links'
 
 const searchers = [
 	require('./reddit'),
@@ -7,16 +11,30 @@ const searchers = [
 const thresholds = {
 	concepts: 0.9,
 	entities: 0.8,
-	keywords: 0.9
+	keywords: 0.9,
+	taxonomy: 0.7
 };
 
-function* onMessage(message) {
+export interface SearchResult {
+	message: string,
+	url: string,
+	source: string,
+	score: number,
+	alchemized: alchemy.AllTheThings
+}
+
+function* onMessage(message : SlackMessage & context.Response & alchemize.Response) : Iterator<Promise<MinionResult>> {
 
 	let context = {
-		concepts: [],
-		entities: [],
-		keywords: [],
-		taxonomy: []
+		concepts: [] as any[],
+		entities: [] as any[],
+		keywords: [] as any[],
+		taxonomy: [] as any[],
+		emotions: [] as any[],
+		relations: [] as any[],
+		sentiment: 0,
+		imageKeywords: [] as any[],
+		dates: [] as any[]
 	}
 
 	message.context = message.context || context;
@@ -37,7 +55,7 @@ function* onMessage(message) {
 	const merged = [...msg.context.concepts, ...msg.context.entities, ...msg.alchemy.concepts, ...msg.alchemy.entities, ...msg.alchemy.keywords];
 
 	if(merged.length < 4)
-		return;
+		return undefined;
 
 	return Promise.all(searchers.map(searcher => searcher.search(msg)))
 		.then(engine_results                  => engine_results.filter(res => res && res.length > 0))
@@ -45,11 +63,11 @@ function* onMessage(message) {
 		.then(flattened_results               => Promise.all(flattened_results.map(analyze)))
 		.then(analyzed_results                => rank(analyzed_results, msg, thresholds))
 		.then(ranked                          => ranked[0])
-		.then(winner                          => winner == undefined ? false : { text: winner.message })
+		.then(winner                          => winner == undefined ? false : { text: winner.message, send: true })
 		.catch(err                            => console.error('search error', err))
 }
 
-const analyze = search_result => {
+const analyze = (search_result : SearchResult) : Promise<SearchResult> => {
 	// dont re-analyzed if it was already done
 	if(search_result.alchemized) {
 		return Promise.resolve(search_result);
@@ -68,7 +86,7 @@ const analyze = search_result => {
 		}))
 }
 
-const flatten = engine_results => {
+const flatten = (engine_results : SearchResult[][]) : SearchResult[]  => {
 
 	const normalized = engine_results.map(engine_result => {
 		const total = engine_result.reduce((agg, curr) => agg + curr.score, 0);
@@ -86,11 +104,11 @@ const flatten = engine_results => {
 				{ concepts, entities, keywords, taxonomy, emotions, relations, sentiment, imageKeywords, dates}
 		}]
 */
-const rank = (analyzed_results, original_message, thresholds) => {
+const rank = (analyzed_results : SearchResult[], original_message : SlackMessage & context.Response & alchemize.Response, thresholds : any) => {
 
 	let context = {
-		concepts: [],
-		entities: []
+		concepts: [] as any[],
+		entities: [] as any[]
 	};
 
 	const { concepts, keywords, entities } = original_message.alchemy;
@@ -119,7 +137,7 @@ const rank = (analyzed_results, original_message, thresholds) => {
 }
 
 //TODO: make this so it only takes 2 arrays? then you can weight the returned score however you want.
-const percentOverlap = (list1, list2, list3) => {
+const percentOverlap = (list1 : any[], list2 : any[], list3 : any[]) => {
 	list1 = list1.map(c => c.text.toLowerCase());
 	list2 = list2.map(c => c.text.toLowerCase());
 	list3 = list3.map(c => c.text.toLowerCase());
@@ -141,11 +159,15 @@ const percentOverlap = (list1, list2, list3) => {
 	return list2_overlap + list3_overlap / 2; // what if overlap with current is more important than context?
 }
 
-module.exports = {
+const mod = {
 	onMessage,
 	analyze,
 	rank,
 	thresholds,
-	key: msg => 'search',
-	filter: msg => msg.alchemy && msg.links.length > 0 && msg.text.split(' ').length >= 15
+	key: 'search',
+	filter: (msg : SlackMessage & links.Response) => msg.links.length > 0 && msg.text.split(' ').length >= 15,
+	requirements: ['alchemy', 'links']
+
 }
+
+export default mod;

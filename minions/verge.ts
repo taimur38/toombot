@@ -1,11 +1,17 @@
-const axios = require('axios');
+import * as axios from 'axios';
 const dom = require('xmldom').DOMParser;
 const xpath = require('xpath');
 
+import { SlackMessage, MinionResult, MinionModule } from '../types'
+import * as links from './links'
+
 const parser = new dom();
 
-function* onMessage(message) {
+function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<MinionResult>> {
 	const relevant_links = message.links.filter(x => x.domain.match(/theverge.com|recode.net/));
+
+	if(relevant_links.length == 0)
+		return Promise.resolve(undefined);
 
 	return axios.get(relevant_links[0].url)
 		.then(rsp => {
@@ -44,18 +50,16 @@ function* onMessage(message) {
 				}
 			}
 
-			return response.length > 0 ? { text: response } : false;
+			return response.length > 0 ? { text: response, send: true } : undefined;
 		})
-		.catch(err => { console.log(err); return false; })
+		.catch(err => { console.log(err); return undefined; })
 
 }
 
-module.exports = {
+const mod : MinionModule = {
 	onMessage,
-	key: msg => 'verge',
-	filter: msg => {
-		const relevant_links = msg.links.filter(x => x.domain.match(/theverge.com|recode.net/));
-
-		return relevant_links.length > 0;
-	}
+	key: 'verge',
+	requirements: ['links']
 }
+
+export default mod;

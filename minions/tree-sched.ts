@@ -10,6 +10,12 @@ import reddit from './reddit';
 import graphMeta from './graph-meta';
 import graphMsg from './graph-msg'
 import locations from './locations'
+import heyToombots from './hey-toombots'
+import isQuestion from './isQuestion'
+import medium from './medium'
+import wolfram from './wolfram'
+import redditEnrichment from './reddit-enrichment';
+import verge from './verge'
 
 interface Node {
 	key: string,
@@ -46,7 +52,13 @@ const minion_modules : MinionModule[] = [
 	reddit,
 	graphMsg,
 	graphMeta,
-	locations
+	locations,
+	heyToombots,
+	isQuestion,
+	redditEnrichment,
+	medium,
+	verge,
+	wolfram
 ];
 
 let existing_minions : ActiveMinion[] = [];
@@ -138,7 +150,15 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
 	const done_minions = new Set<string>();
 	const inprocess_minions = new Set<string>();
-	const minion_tree = schedule(message);
+	console.log('scheduling')
+	let minion_tree : Map<string, Node>;
+	try {
+		minion_tree = schedule(message);
+	} catch(e) {
+		console.error(e);
+		return Promise.reject(e);
+	}
+	console.log('scheduled')
 
 	const initial = [...minion_tree.entries()].filter(([k, v]) => v.parents.length == 0);
 
@@ -163,7 +183,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 		const iterResult = generator.next(cumulativeMessage);
 		const res = await iterResult.value;
 
-		if(res && res.send) {
+		if(res && (res.send || res.text)) {
 			console.log('sending', res);
 			emitter.emit('send', res.text, message);
 		}

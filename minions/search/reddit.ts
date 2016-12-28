@@ -1,4 +1,8 @@
-const axios = require('axios')
+import * as axios  from 'axios'
+import { SlackMessage } from '../../types'
+import { SearchResult } from '../search'
+import * as context from '../context'
+import * as alchemized from '../alchemize'
 
 // search is a function that
 // returns a promise that returns a list of:
@@ -12,7 +16,7 @@ const reddit_session = axios.create({
 	timeout: 3000
 })
 
-const search = (message) => {
+const search = (message : SlackMessage & context.Response & alchemized.Response) : Promise<SearchResult[]> => {
 
 	const context = message.context;
 	console.log(message)
@@ -49,14 +53,14 @@ const search = (message) => {
 				return false;
 
 			return posts
-				.filter(post => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)
-				.map(post => ({
+				.filter((post : any) => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)
+				.map((post : any) => ({
 					message: post.data.title + ': ' + post.data.url,
 					url: post.data.url,
 					source: searchUrl,
 					score: post.data.score // TODO: fill this out. currently just the reddit score - different search might have a score derived from how recent it is, how many responses it gets, whatever.
 				}))
-				.sort((a, b) => b.score - a.score)
+				.sort((a : any, b : any) => b.score - a.score)
 				.slice(0,10);
 		})
 		.catch(err => console.log('reddit error', err))

@@ -1,11 +1,12 @@
 import { SlackMessage, MinionModule } from '../types'
 
-interface Response {
+export interface Response {
 	isQuestion: boolean
 }
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
+	console.log('isquestion')
 	return Promise.resolve(
 		{ isQuestion: (
 			message.text.split(' ').length >= 3 && (
@@ -20,7 +21,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
 const mod : MinionModule = {
 	onMessage,
-	key: () => 'isQuestion'
+	key: 'isQuestion'
 }
 
 export default mod;
