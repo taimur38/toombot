@@ -26,7 +26,7 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 
 const mod : MinionModule = {
 	onMessage,
-	key: (msg : SlackMessage) => 'imageTags',
+	key: 'imageTags',
 	requirements: ['links']
 }
 

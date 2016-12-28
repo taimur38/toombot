@@ -137,17 +137,17 @@ async function thoughts(response : SlackMessage & context.Response) : Promise<Mi
 
 			return posts
 				.filter((post : any) => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)
-				.map((post) => ({
+				.map((post : any) => ({
 					message: post.data.title + ': ' + post.data.url,
 					url: post.data.url,
 					source: `/search.json?q=${concept_merge}+nsfw:no+self:no`,
 					score: post.data.score // TODO: fill this out. currently just the reddit score - different search might have a score derived from how recent it is, how many responses it gets, whatever.
 				}))
-				.sort((a, b) => b.score - a.score)
+				.sort((a : any, b : any) => b.score - a.score)
 				.slice(0,10);
 		})
-		.then(flattened_results               => Promise.all(flattened_results.map(analyzer.analyze)))
-		.then(analyzed_results                => analyzer.rank(analyzed_results, response, analyzer.thresholds))
+		.then(flattened_results               => Promise.all(flattened_results.map(analyzer.default.analyze)))
+		.then(analyzed_results                => analyzer.default.rank(analyzed_results, response, analyzer.default.thresholds))
 		.then(ranked                          => ranked[0])
 		.then(winner                          => winner == undefined ? undefined : { text: winner.message, send: true })
 		.catch(err => {

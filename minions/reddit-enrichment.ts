@@ -19,7 +19,7 @@ function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Prom
 		return Promise.resolve(false);
 
 	return session.get(`/search.json?q=${concept_merge}`)
-		.then(rsp => rsp.data)
+		.then(rsp => rsp.data as any)
 		.then(results => {
 
 			const posts = results.data.children;

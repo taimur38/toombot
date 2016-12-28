@@ -18,7 +18,7 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 
 			let response = "";
 
-			const span = rsp.data.match(/<q+><span>(.+)<\/q>/g)
+			const span = (<string>rsp.data).match(/<q+><span>(.+)<\/q>/g)
 			if(span && span.length > 0) {
 				for(let s of span) {
 					try {
@@ -34,7 +34,7 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 				}
 			}
 
-			const nospan = rsp.data.match(/<q(.?)+>(.+)<\/q>/g)
+			const nospan = (<string>rsp.data).match(/<q(.?)+>(.+)<\/q>/g)
 			if(nospan && nospan.length > 0) {
 				for(let n of nospan) {
 					try{

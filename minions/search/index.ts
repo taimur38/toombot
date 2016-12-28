@@ -116,7 +116,7 @@ const rank = (analyzed_results : SearchResult[], original_message : SlackMessage
 	return analyzed_results
 		.map(res => {
 			const post_concepts = res.alchemized.concepts
-				.filter((c) => parseFloat(c.relevance > thresholds.concepts));
+				.filter((c) => parseFloat(c.relevance) > thresholds.concepts);
 			const post_entities = res.alchemized.entities
 				.filter((c) => parseFloat(c.relevance) > thresholds.entities || (c.type == 'Person' && parseFloat(c.relevance) > thresholds.entities - 0.1));
 			const post_keywords = res.alchemized.keywords
@@ -167,7 +167,6 @@ const mod = {
 	key: 'search',
 	filter: (msg : SlackMessage & links.Response) => msg.links.length > 0 && msg.text.split(' ').length >= 15,
 	requirements: ['alchemy', 'links']
-
 }
 
 export default mod;
