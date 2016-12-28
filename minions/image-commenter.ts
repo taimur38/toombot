@@ -8,7 +8,7 @@ const reddit_session = axios.create({
 	headers: {
 		'User-Agent': '/u/taimur38'
 	},
-	timeout: 3000
+	timeout: 10000
 })
 
 const key = 'imageCommenter'
@@ -54,6 +54,7 @@ function* onMessage(message : SlackMessage & imagize.Response & linkMeta.Respons
                     text: post.data.title + ': ' + post.data.url
                 }
         })
+	.catch(err => { console.error(err); return undefined } )
 }
 
 const mod : MinionModule = {
