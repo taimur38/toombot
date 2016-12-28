@@ -6,11 +6,11 @@ const annotate = (message : any) => [
 	...emotionalize("Message", message.id, message.alchemy.emotions)
 ];
 
-const emotionalize = (nodeType : string, nodeId : string, emotions : Object) => {
+const emotionalize = (nodeType : string, nodeId : string, emotions : Object & { [propName: string] : any }) => {
 	let transactions : string[] = [];
 
 	for(let emotion in emotions) {
-		let score = emotions[emotion];
+		let score = emotions[emotion] as number;
 
 		transactions.push(`
 			MATCH (n:${nodeType} {id: "${nodeId}"})

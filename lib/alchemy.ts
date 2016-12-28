@@ -11,7 +11,7 @@ const blacklist_regex = new RegExp(blacklist_str);
 
 
 const _url = 'http://access.alchemyapi.com/calls';
-const _urlBases = {
+const _urlBases : Object & {[p: string] : string} = {
 	text: _url + '/text/Text',
 	url: _url + '/url/URL',
 	html: _url + '/html/HTML'
@@ -67,7 +67,7 @@ function _post(contentType : string, endpoint : string, content : string, args? 
 		})
 }
 
-export function getRelations(content : string, contentType : string) : axios.Promise {
+export function getRelations(content : string, contentType : string) {
 	contentType = contentType || "text";
 
 	return _post(contentType, "GetRelations", content, {})
@@ -144,7 +144,7 @@ export function getAllTheThings(content : string, contentType? : string, sanitiz
 }
 
 // why
-let urlEncode = (obj : Object) => {
+let urlEncode = (obj : Object & {[p: string] : string }) => {
 	let str = [];
 	for(let p in obj) {
 		str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));

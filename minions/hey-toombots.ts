@@ -70,7 +70,7 @@ function getFact(message : SlackMessage) : Promise<MinionResult> {
 	})
 }
 
-function specificThoughts(response : SlackMessage) : Promise<MinionResult> {
+async function specificThoughts(response : SlackMessage) : Promise<MinionResult> {
 	console.log('here')
 	let topic = response.text.split("think about")[1].replace("?", "");
 	return session.get(`/search.json?q=${topic}+nsfw:no+self:no`)
@@ -78,10 +78,9 @@ function specificThoughts(response : SlackMessage) : Promise<MinionResult> {
 		.then((results : any) => {
 			let promises = [];
 			const posts = results.data.children;
-			console.log('HERE')
 
 			if(posts.length == 0)
-				return false;
+				throw new Error('no posts');
 
 			let post = posts.filter((post : any) => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)[0];
 
@@ -98,18 +97,18 @@ function specificThoughts(response : SlackMessage) : Promise<MinionResult> {
 			}
 
 			return Promise.all(promises)
-		})
-		.then((results : any) => {
-			let final_answer = '';
-			for(let result of results) {
-				if(result)
-					final_answer = final_answer + "\n" + result;
-			}
-			return {text: final_answer, send: true};
+				.then((results : any) => {
+					let final_answer = '';
+					for(let result of results) {
+						if(result)
+							final_answer = final_answer + "\n" + result;
+					}
+					return { text: final_answer, send: true };
+				})
 		})
 		.catch((err : any) => {
 			console.log(err);
-			return { text: 'i have no thoughts on the matter', send: true }
+			return { text: 'i have no thoughts on the matter', send: true } as MinionResult
 		})
 }
 
@@ -118,7 +117,7 @@ function wiki(response : SlackMessage) : Promise<MinionResult> {
 	return Promise.resolve({ send: true, text: "https://en.wikipedia.org/wiki/" + topic });
 }
 
-function thoughts(response : SlackMessage & context.Response) : Promise<MinionResult> {
+async function thoughts(response : SlackMessage & context.Response) : Promise<MinionResult> {
 	let concepts = response.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
 	let entities = response.context.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
 
@@ -129,15 +128,16 @@ function thoughts(response : SlackMessage & context.Response) : Promise<MinionRe
 
 	return session.get(`/search.json?q=${concept_merge}+nsfw:no+self:no`)
 		.then(rsp => rsp.data)
-		.then(results => {
+		.then((results : any) => {
 
-			const posts = results.data.children;
+			const posts = (results.data as any).children;
 
 			if(posts.length == 0)
 				return undefined;
+
 			return posts
-				.filter(post => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)
-				.map(post => ({
+				.filter((post : any) => post.data.url.indexOf('reddit.com') < 0 && !post.data.over_18)
+				.map((post) => ({
 					message: post.data.title + ': ' + post.data.url,
 					url: post.data.url,
 					source: `/search.json?q=${concept_merge}+nsfw:no+self:no`,
