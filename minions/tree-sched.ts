@@ -16,6 +16,7 @@ import medium from './medium'
 import wolfram from './wolfram'
 import redditEnrichment from './reddit-enrichment';
 import verge from './verge'
+import imageize from './image-ize';
 
 interface Node {
 	key: string,
@@ -58,7 +59,8 @@ const minion_modules : MinionModule[] = [
 	redditEnrichment,
 	medium,
 	verge,
-	wolfram
+	wolfram,
+	imageize
 ];
 
 let existing_minions : ActiveMinion[] = [];

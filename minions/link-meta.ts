@@ -27,6 +27,7 @@ export interface Response {
 
 function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<Response>> {
 
+	console.log('linkMeta')
 	errors = 0;
 	if(message.links.length == 0)
 		return Promise.resolve({ [key]: [] })

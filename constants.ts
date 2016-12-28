@@ -29,3 +29,5 @@ export const NLC = {
 export const bot = {
 	name: process.env.BOT_NAME
 }
+
+export const visualRecognitionAPIKey = process.env.VR_API_KEY;
