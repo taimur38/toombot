@@ -21,22 +21,25 @@ function* onMessage(message : SlackMessage ) : Iterator<Promise<MinionResult>> {
 	const response = yield Promise.resolve({
 		send: true,
 		text: 'hey',
-		filter: (msg : SlackMessage) => msg.text.toLowerCase().indexOf('thoughts') > -1 || msg.text.toLowerCase().indexOf('think about') > -1 || msg.text.indexOf('what is') > -1 || msg.text.indexOf('testing') > -1 || msg.text.toLowerCase().indexOf('fact') > -1 || msg.text.toLowerCase().indexOf('learned') > -1,
+		filter: (msg : SlackMessage) => msg.text.search(/thoughts|think about|what is|test|fact|learned|summarize/gi) > -1,
 		contextMatch: (msg : SlackMessage) => msg.user.id == message.user.id && msg.channel.id == message.channel.id,
 		requirements: ['context', 'alchemy', 'links']
 	});
 
-	if(response.text.indexOf('thoughts') > -1) { //context
+	if(response.text.search(/thoughts/gi) > -1) { //context
 		return thoughts(response)
 	}
-	else if(response.text.indexOf('think about') > -1) { //now
+	else if(response.text.search(/think about/gi) > -1) { //now
 		return specificThoughts(response)
 	}
-	else if(response.text.indexOf('what is') > -1) {
+	else if(response.text.search(/what is/gi) > -1) {
 		return wiki(response)
 	}
-	else if(response.text.indexOf('fact') > -1 || response.text.indexOf('learned') > -1) {
+	else if(response.text.search(/fact|learned/gi) > -1) {
 		return getFact(response)
+	}
+	else if(response.text.search(/summarize/gi) > -1) {
+		return summarize(response)
 	}
 	else
 		return undefined;
@@ -115,6 +118,53 @@ async function specificThoughts(response : SlackMessage) : Promise<MinionResult>
 function wiki(response : SlackMessage) : Promise<MinionResult> {
 	let topic = response.text.split("what is ")[1].replace("?", "").replace(" ", "%20");
 	return Promise.resolve({ send: true, text: "https://en.wikipedia.org/wiki/" + topic });
+}
+
+function summarize(response: SlackMessage) : Promise<MinionResult> {
+
+	const session = driver.session();
+
+	const threshold = 10 * 60 * 1000;
+	console.log("summarizing")
+
+	return session.run(`
+		MATCH (f:Fact)--(m:Message)--(c:SlackChannel {id: {c_id}), (m)-[:SENT_MESSAGE]-(u:User)
+		return u.name as sender, m.text as msg, m.timestamp as timestamp
+		order by toFloat(m.timestamp) desc
+		limit 300
+	`, {
+		c_id: response.channel.id
+	})
+	.then((res : any) => {
+
+		console.log("RESPONSE");
+		session.close();
+
+		let records = [res.records[0]];
+		for(let i = 1; i < res.records.length; i++) {
+			const record = res.records[i]
+			const prev = res.records[i - 1];
+
+			const ts1 = parseFloat(prev.get('timestamp')) * 1000;
+			const ts2 = parseFloat(res.records[i + 1].get('timestamp')) * 1000;
+
+			if(ts1 - ts2 > threshold) {
+				break;
+			}
+
+			records.push(record)
+		}
+
+		const msg = records.filter((r, i) => records.findIndex(rx => rx.get('timestamp') == r.get('timestamp')) == i)
+			.reduce((agg, curr) => `${curr.get('sender')}: ${curr.get('msg')}\n`);
+
+		return { text: msg, send: true }
+
+	})
+	.catch((err : any) => {
+		session.close();
+		console.error(err)
+	})
 }
 
 async function thoughts(response : SlackMessage & context.Response) : Promise<MinionResult> {
