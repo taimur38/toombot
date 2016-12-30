@@ -164,7 +164,7 @@ const companize = (message : any) => {
 		}).catch((err : Error) => console.error('tx run error', message.companies, err))
 	}
 
-	return tx.commit().then(() => session.close());
+    return tx.commit().then(() => session.close()).catch(() => session.close());
 }
 
 const linkize = (message : any) => {
@@ -206,7 +206,7 @@ const linkize = (message : any) => {
 		}
 	}
 
-	return tx.commit().then(() => session.close())
+    return tx.commit().then(() => session.close()).catch(() => session.close())
 }
 
 export default {
