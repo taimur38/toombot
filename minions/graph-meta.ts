@@ -92,6 +92,7 @@ const factize = (message : Message) => {
 	return Promise.all(promises)
 		.then(() => tx.commit())
 		.then(() => session.close())
+        .then(() => console.log('logged fact'))
 		.catch(err => { console.error('factize commit err', err); tx.commit(); session.close(); })
 
 }
