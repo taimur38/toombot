@@ -212,7 +212,7 @@ async function thoughts(response : SlackMessage & context.Response) : Promise<Mi
 const mod : MinionModule = {
 	onMessage,
 	key: 'hey',
-	filter: msg => msg.text.startsWith(`hey ${bot.name}`) && msg.text.indexOf(bot.name) > -1
+	filter: msg => msg.text.toLowerCase().startsWith(`hey ${bot.name}`) && msg.text.toLowerCase().indexOf(bot.name) > -1
 }
 
 export default mod;
