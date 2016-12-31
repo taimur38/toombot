@@ -15,7 +15,7 @@ const key = 'imageCommenter'
 
 function* onMessage(message : SlackMessage & imagize.Response & linkMeta.Response) : Iterator<Promise<MinionResult>> {
 
-    if(!message.imageTags && message.imageTags.length == 0)
+    if(message.imageTags == undefined || message.imageTags.length == 0)
         return Promise.resolve()
 
     if(message.link_meta[0].link.domain.indexOf('instagram') == -1) {
