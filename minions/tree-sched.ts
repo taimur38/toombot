@@ -174,7 +174,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 			.filter(([key, node]) => !done_minions.has(key) && !inprocess_minions.has(key))
 			.forEach(([key, node]) => {
 				if(node.parents.every(k => done_minions.has(k))) {
-					//console.log('running', key);
+					console.log('running', key);
 					run(key, node)
 				}
 			})
@@ -217,6 +217,8 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
 		inprocess_minions.delete(key);
 		done_minions.add(key)
+		console.log('done', key)
+		console.log([...minion_tree.keys()].filter(k => !done_minions.has(k)), 'is remaining');
 		if(done_minions.size < minion_tree.size)
 			recheck()
 		else
