@@ -25,7 +25,7 @@ const factize = (message : any) => {
 	const tx = session.beginTransaction();
 
 	const facts = message.alchemy.relations
-		.filter((m : any) => m.action && m.action.lemmatized == 'be' && m.subject && m.object);
+		.filter((m : any) => m.action && (m.action.lemmatized == 'be' || m.action.lemmatized == 'think') && m.subject && m.object);
 
 	const promises = [];
 	for(let fact of facts) {
