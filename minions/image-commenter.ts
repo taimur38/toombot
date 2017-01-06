@@ -37,20 +37,35 @@ function* onMessage(message : SlackMessage & imagize.Response & linkMeta.Respons
         send: true,
         text: "is this picture about " + topClasses.map(c => c.class).join(' and ') + "?",
         contextMatch: (msg : SlackMessage) => msg.channel.id == message.channel.id,
-        filter: (msg : SlackMessage) => msg.text.search(/yeah|yup|yep|yes|no|nope/gi) > -1
+        filter: (msg : SlackMessage) => msg.text.search(/\b(yeah|yup|yep|yes|no|nope)\b/gi) > -1
     }) 
 
-    if(response.text.search(/no|nope/gi) > -1)
+    if(response.text.search(/\b(no|nope)\b/gi) > -1) {
         return Promise.resolve({ 
             text: ":(",
             send: true
         })
+    } 
+
+    const goFurther : SlackMessage = yield Promise.resolve({
+        text: "would you like to see related content from reddit?",
+        send: true,
+        contextMatch: (msg : SlackMessage) => msg.channel.id == message.channel.id,
+        filter: (msg : SlackMessage) => msg.text.search(/\b(yeah|yup|yep|yes|no|nope)\b/gi) > -1
+    })
+
+    if(goFurther.text.search(/\b(no|nope)\b/gi) > -1) {
+        return Promise.resolve({
+            text: "ok",
+            send: true
+        })
+    }
 
     const query = topClasses
         .reduce((agg, curr) => agg + '(' + curr.class.split(' ').join(' AND ') + ') OR ', '')
 
     console.log(query);
-    return reddit_session.get(`/search.json?q=${query}`)
+    return reddit_session.get(`/search.json?q=${query}+nsfw:no`)
         .then(rsp => {
             if(rsp.data)
                 return (<any>rsp.data).data.children;
@@ -69,7 +84,13 @@ function* onMessage(message : SlackMessage & imagize.Response & linkMeta.Respons
                     text: post.title + ': ' + post.url
                 }
         })
-	.catch(err => { console.error(err); return undefined } )
+        .catch(err => { 
+            console.error(err);
+            return {
+                send: true,
+                text: "reddit search taking too long :("
+            } 
+        })
 }
 
 const mod : MinionModule = {
