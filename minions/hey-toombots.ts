@@ -128,7 +128,7 @@ function summarize(response: SlackMessage) : Promise<MinionResult> {
 	console.log("summarizing")
 
 	return session.run(`
-		MATCH (f:Fact)--(m:Message)--(c:SlackChannel {id: {c_id}), (m)-[:SENT_MESSAGE]-(u:User)
+		MATCH (f:Fact)--(m:Message)--(c:SlackChannel {id: {c_id} }), (m)-[:SENT_MESSAGE]-(u:User)
 		return u.name as sender, m.text as msg, m.timestamp as timestamp
 		order by toFloat(m.timestamp) desc
 		limit 300
@@ -146,7 +146,7 @@ function summarize(response: SlackMessage) : Promise<MinionResult> {
 			const prev = res.records[i - 1];
 
 			const ts1 = parseFloat(prev.get('timestamp')) * 1000;
-			const ts2 = parseFloat(res.records[i + 1].get('timestamp')) * 1000;
+			const ts2 = parseFloat(record.get('timestamp')) * 1000;
 
 			if(ts1 - ts2 > threshold) {
 				break;
@@ -155,7 +155,8 @@ function summarize(response: SlackMessage) : Promise<MinionResult> {
 			records.push(record)
 		}
 
-		const msg = records.filter((r, i) => records.findIndex(rx => rx.get('timestamp') == r.get('timestamp')) == i)
+		const msg = records
+            .filter((r, i) => records.findIndex(rx => rx.get('timestamp') == r.get('timestamp')) == i)
 			.reduce((agg, curr) => `${curr.get('sender')}: ${curr.get('msg')}\n`);
 
 		return { text: msg, send: true }
@@ -209,7 +210,7 @@ async function thoughts(response : SlackMessage & context.Response) : Promise<Mi
 const mod : MinionModule = {
 	onMessage,
 	key: 'hey',
-	filter: msg => msg.text.toLowerCase().startsWith(`hey ${bot.name}`) && msg.text.toLowerCase().indexOf(bot.name) > -1
+	filter: msg => msg.text.toLowerCase().startsWith(`hey ${bot.name}`) 
 }
 
 export default mod;
