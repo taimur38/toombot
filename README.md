@@ -13,6 +13,8 @@ Toombot is currently comprised of 3 components - many actors called minions, a c
 
 At a high level, a minion takes slack messages as input and outputs either responses to those messages in chat, or outputs an enrichment to the message. An enrichment is anything that could be useful in analyzing and acting on a message later. A few example enrichments: the results of alchemy language on the message text, the past 5 minutes of text, an array of all urls mentioned in the message, meta-data on those urls, etc. Other minions can then accept these enrichments as inputs. In this way, we build a powerful ecosystem of minions over time that make it easier and easier to build advanced features into your chatbot.
 
+![schema](https://github.com/taimur38/toombot/blob/master/misc/flow.png)
+
 A minion can require the outputs of other minons, and instead of being passed a regular slack message it will be passed the result of all those enrichments on the slack message. The core scheduler will make sure the minions are run in the right order, and will combine the outputs of the requirements to deliver the correct payload to your minion. It will also handle passing responses up the chain to be sent back to slack if desired.
 
 Minions are implemented as generators that yield promises. This gives you an easy conversational interface and keeps the state of your interactions inside of a single function closure. For example: 
