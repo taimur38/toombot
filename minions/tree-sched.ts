@@ -218,7 +218,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 		inprocess_minions.delete(key);
 		done_minions.add(key)
 		console.log('done', key)
-		console.log([...minion_tree.keys()].filter(k => !done_minions.has(k)), 'is remaining');
+		//console.log([...minion_tree.keys()].filter(k => !done_minions.has(k)), 'is remaining');
 		if(done_minions.size < minion_tree.size)
 			recheck()
 		else
