@@ -65,7 +65,7 @@ function* onMessage(message : SlackMessage & imagize.Response & linkMeta.Respons
 	const query = '(' + topClasses.map(x => x.class).join(') OR (') + ')';
     //const query = topClasses.reduce((agg, curr) => agg + '(' + curr.class + ') OR ', '')
 
-    return reddit_session.get(`/search.json?q=${query}+nsfw:no`)
+    return reddit_session.get(`/search.json?q=${query}+nsfw:no+self:no`)
         .then(rsp => {
             if(rsp.data)
                 return (<any>rsp.data).data.children;
