@@ -70,7 +70,9 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 	}
 
 	try {
-		const isRepost = await graph.isRepost({ response: response.text, message });
+
+		const repostTimeout = new Promise((resolve, reject) => setTimeout(resolve, 5000));
+		const isRepost = await Promise.race([graph.isRepost({ response: response.text, message }), repostTimeout]);
 
 		if(isRepost) {
 			console.log('repost', response)
