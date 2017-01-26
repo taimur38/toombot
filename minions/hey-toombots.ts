@@ -117,7 +117,8 @@ async function specificThoughts(response : SlackMessage) : Promise<MinionResult>
 }
 
 function wiki(response : SlackMessage) : Promise<MinionResult> {
-	let topic = response.text.split("what is ")[1].replace("?", "").replace(" ", "%20");
+	const cleanedQuestion = response.text.replace(/\?/g, '');
+	const topic = cleanedQuestion.match(/what is (.+)/)[1].replace(/ /g, "%20")
 	return Promise.resolve({ send: true, text: "https://en.wikipedia.org/wiki/" + topic });
 }
 
