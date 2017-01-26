@@ -8,7 +8,7 @@ const reddit_session = axios.create({
 	headers: {
 		'User-Agent': '/u/taimur38'
 	},
-	timeout: 10000
+	timeout: 20000
 })
 
 const key = 'imageCommenter'
