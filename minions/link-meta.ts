@@ -62,7 +62,7 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 			try {
 
 				const xml = parser.parseFromString(res.data as string);
-				const ogtags = xpath.select('//meta[contains(@property, "og:")]', xml)
+				const ogtags = xpath.select('//meta[contains(@property, "og:")]', xml, undefined)
 				const formatted = ogtags.map((tag : any) => ({
 					type: tag.attributes[0].value,
 					label: tag.attributes[1].value

@@ -103,7 +103,7 @@ const schedule = (message : SlackMessage) : Map<string, Node> => {
 					//console.log('get rid of minion', m_key);
 					existing_minions = existing_minions.filter(e => !(e.key == m_key && e.contextMatch(message)));
 				}
-			} 
+			}
 
 			if(!minion_map.has(m_key))
 			{
@@ -189,7 +189,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 
 		if(res && (res.send || res.text)) {
 			console.log('sending', res);
-			emitter.emit('send', res.text, message);
+			emitter.emit('send', res, message);
 		}
 
 		const existing_minion = existing_minions.find(e => e.key == key && e.contextMatch(cumulativeMessage));

@@ -21,6 +21,7 @@ function* onMessage(message : SlackMessage ) : Iterator<Promise<MinionResult>> {
 	const response = yield Promise.resolve({
 		send: true,
 		text: 'hey',
+		threadReply: true,
 		filter: (msg : SlackMessage) => msg.text.search(/thoughts|think about|what is|test|fact|learned|summarize/gi) > -1,
 		contextMatch: (msg : SlackMessage) => msg.user.id == message.user.id && msg.channel.id == message.channel.id,
 		requirements: ['context', 'alchemy', 'links']
@@ -210,7 +211,7 @@ async function thoughts(response : SlackMessage & context.Response) : Promise<Mi
 const mod : MinionModule = {
 	onMessage,
 	key: 'hey',
-	filter: msg => msg.text.toLowerCase().startsWith(`hey ${bot.name}`) 
+	filter: msg => msg.text.toLowerCase().startsWith(`hey ${bot.name}`)
 }
 
 export default mod;

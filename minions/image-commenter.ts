@@ -31,23 +31,23 @@ function* onMessage(message : SlackMessage & imagize.Response & linkMeta.Respons
         .filter(c => c.super_score > 0.8 && c.class.indexOf('color') == -1)
         .sort((a, b) => b.super_score - a.super_score)
         .slice(0, 2)
-    
-// testingg
+
     const response : SlackMessage = yield Promise.resolve({
         send: true,
+		threadReply: true,
         text: "is this picture about " + topClasses.map(c => c.class).join(' and ') + "?",
         contextMatch: (msg : SlackMessage) => msg.channel.id == message.channel.id,
-        filter: (msg : SlackMessage) => msg.text.search(/\b(yeah|yup|yep|yes|no|nope)\b/gi) > -1
-    }) 
+        filter: (msg : SlackMessage) => msg.text.search(/\b(yeah|yup|yep|yes|sure|no|nope)\b/gi) > -1
+    })
 
     if(response.text.search(/\b(no|nope)\b/gi) > -1) {
-        return Promise.resolve({ 
+        return Promise.resolve({
             text: ":(",
             send: true
         })
-    } 
+    }
 
-    const goFurther : SlackMessage = yield Promise.resolve({
+    /*const goFurther : SlackMessage = yield Promise.resolve({
         text: "would you like to see related content from reddit?",
         send: true,
         contextMatch: (msg : SlackMessage) => msg.channel.id == message.channel.id,
@@ -60,11 +60,11 @@ function* onMessage(message : SlackMessage & imagize.Response & linkMeta.Respons
             send: true
         })
     }
+	*/
 
-    const query = topClasses
-        .reduce((agg, curr) => agg + '(' + curr.class.split(' ').join(' AND ') + ') OR ', '')
+	const query = '(' + topClasses.map(x => x.class).join(') OR (') + ')';
+    //const query = topClasses.reduce((agg, curr) => agg + '(' + curr.class + ') OR ', '')
 
-    console.log(query);
     return reddit_session.get(`/search.json?q=${query}+nsfw:no`)
         .then(rsp => {
             if(rsp.data)
@@ -84,12 +84,12 @@ function* onMessage(message : SlackMessage & imagize.Response & linkMeta.Respons
                     text: post.title + ': ' + post.url
                 }
         })
-        .catch(err => { 
+        .catch(err => {
             console.error(err);
             return {
                 send: true,
                 text: "reddit search taking too long :("
-            } 
+            }
         })
 }
 

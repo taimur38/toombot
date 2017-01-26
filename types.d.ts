@@ -20,7 +20,16 @@ export interface MinionResult extends Object {
 	text?: string,
 	send?: boolean,
 	requirements?: string[],
-	contextMatch?: (msg : SlackMessage) => boolean
+	contextMatch?: (msg : SlackMessage) => boolean,
+	threadReply?: boolean
+}
+
+export interface SlackResponse {
+	type: string,
+	channel: string,
+	user: string,
+	text: string,
+	ts: string
 }
 
 export interface SlackMessage {
@@ -30,6 +39,7 @@ export interface SlackMessage {
 	mentions: SlackUser[],
 	timestamp: Date,
 	ts: number,
+	thread_ts?: number,
 	channel: SlackChannel
 }
 

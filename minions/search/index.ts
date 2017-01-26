@@ -105,7 +105,7 @@ const flatten = (engine_results : SearchResult[][]) : SearchResult[]  => {
 				{ concepts, entities, keywords, taxonomy, emotions, relations, sentiment, imageKeywords, dates}
 		}]
 */
-const rank = (analyzed_results : SearchResult[], original_message : SlackMessage & context.Response & alchemize.Response, thresholds : any) => {
+const rank = (analyzed_results : SearchResult[], original_message : SlackMessage & context.Response & alchemize.Response, thresholds : any) : (SearchResult & { context_score: number })[] => {
 
 	let context = {
 		concepts: [] as any[],

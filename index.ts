@@ -5,7 +5,7 @@ import { EventEmitter } from 'events'
 import graph from './graph';
 //import * as minions from './minions';
 import * as minions from './minions/tree-sched';
-import { SlackMessage, SlackUser } from './types';
+import { SlackMessage, SlackUser, SlackResponse } from './types';
 
 // import nlc from './lib/nlc';
 
@@ -63,14 +63,14 @@ rtm.on(RTM_EVENTS.MESSAGE, (message : any) => {
 		minions.dispatch(myEmitter, cleaned)
 })
 
-myEmitter.on('send', async function(response : string, message : any) {
+myEmitter.on('send', async function(response : any, message : SlackMessage) {
 
 	if(message.user.name == 'toombot') {
 		return;
 	}
 
 	try {
-		const isRepost = await graph.isRepost({ response, message });
+		const isRepost = await graph.isRepost({ response: response.text, message });
 
 		if(isRepost) {
 			console.log('repost', response)
@@ -90,21 +90,35 @@ myEmitter.on('send', async function(response : string, message : any) {
 	}
 	*/
 
-	const slackResponse = await sendMessage(response, message.channel.id);
+	let slackResponse : SlackResponse;
+	if(response.threadReply || message.thread_ts)
+		slackResponse = await threadReply(response.text, message);
+	else
+		slackResponse = await sendMessage(response.text, message);
 
 	graph.message(slackClean(slackResponse));
 	// minions.dispatch(myEmitter, slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
+
 });
 
-function sendMessage(text : string, channel_id : string) {
+async function sendMessage(text : string, ogMessage : SlackMessage) : Promise<SlackResponse> {
 
-	return new Promise((resolve, reject) => {
-		rtm.sendMessage(text, channel_id, (err : Error, msg : any) => {
+	return new Promise<SlackResponse>((resolve, reject) => {
+		rtm.sendMessage(text, ogMessage.channel.id, (err : Error, msg : SlackResponse) => {
 			if(err) {
 				return reject(err)
 			}
 			resolve(msg)
 		})
+	})
+}
+
+async function threadReply(text: string, ogMessage : SlackMessage) : Promise<SlackResponse> {
+	return rtm.send({
+		text,
+		channel: ogMessage.channel.id,
+		thread_ts: ogMessage.thread_ts || ogMessage.ts,
+		type: RTM_EVENTS.MESSAGE
 	})
 }
 

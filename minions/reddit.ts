@@ -84,7 +84,7 @@ export const getComments = (permalink : SlackMessage) => session.get(`${permalin
 
 			//console.log(scored)
 
-			return { text: scored[0] ? scored[0].text : false, send: true };
+			return { text: scored[0] ? scored[0].text : false, send: true, threadReply: false };
 		})
 
 const mod : MinionModule = {
