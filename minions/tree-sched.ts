@@ -62,7 +62,7 @@ const minion_modules : MinionModule[] = [
 	verge,
 	wolfram,
 	imageize,
-	imageCommenter
+	//imageCommenter
 ];
 
 let existing_minions : ActiveMinion[] = [];
