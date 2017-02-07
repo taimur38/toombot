@@ -28,11 +28,17 @@ function* onMessage(message : SlackMessage & Response) : Iterator<Promise<Minion
 		.then((results : any) => {
 			const posts = results.data.children;
 
-			if(posts.length == 0)
+			if(posts.length == 0) {
 				return false;
+			}
 
-			if(posts[0].data.num_comments == 0)
+			if(posts[0].data.num_comments == 0) {
 				return false;
+			}
+
+			if(posts[0].data.url != url) {
+				return false;
+			}
 
 			const top_permalink = posts[0].data.permalink;
 
