@@ -18,6 +18,7 @@ import redditEnrichment from './reddit-enrichment';
 import verge from './verge'
 import imageize from './image-ize';
 import imageCommenter from './image-commenter'
+import tankHunter from './tank-hunter';
 
 interface Node {
 	key: string,
@@ -62,6 +63,7 @@ const minion_modules : MinionModule[] = [
 	verge,
 	wolfram,
 	imageize,
+	tankHunter
 	//imageCommenter
 ];
 
