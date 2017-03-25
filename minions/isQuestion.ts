@@ -6,7 +6,6 @@ export interface Response {
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
-	console.log('isquestion')
 	return Promise.resolve(
 		{ isQuestion: (
 			message.text.split(' ').length >= 3 && (

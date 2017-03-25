@@ -45,7 +45,10 @@ const onMessage = (message : SlackMessage) => {
 	.catch((err : Error) => {
 		console.error('graph msg error', err)
 	})
-	.then(() => session.close())
+	.then(() => {
+		console.log('closing session');
+		session.close();
+	})
 }
 
 export default {

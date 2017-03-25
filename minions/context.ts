@@ -15,8 +15,6 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult & Re
 	while(true) {
 		const transcript = previousMessages.reduce((agg, curr, idx) => idx == 0 ? curr.text : agg + '. ' + curr.text, '');
 
-		console.log('context tscript', transcript)
-
 		const nextMessage = yield getAllTheThings(transcript)
 			.then(alchemized => ({
 				context: alchemized,

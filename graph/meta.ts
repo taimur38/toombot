@@ -16,13 +16,12 @@ const graph = (message : any) => {
 	})
 }
 
-const factize = (message : any) => {
+async function factize(message : any) {
 
 	if(!message.alchemy || message.alchemy.relations.length == 0)
-		return Promise.resolve(false);
+		return false;
 
 	const session = driver.session();
-	const tx = session.beginTransaction();
 
 	const facts = message.alchemy.relations
 		.filter((m : any) => m.action && (m.action.lemmatized == 'be' || m.action.lemmatized == 'think') && m.subject && m.object);
@@ -30,23 +29,28 @@ const factize = (message : any) => {
 	const promises = [];
 	for(let fact of facts) {
 		const text = `${fact.subject.text} ${fact.action.text} ${fact.object.text}`;
-		const p = tx.run(`
-			MATCH (m:Message {id: {m_id} })
-			MERGE (f:Fact {id: {f_id} })
-				SET f.subject = {f_subject}, f.action = {f_action}, f.object = {f_object}
-			MERGE (m)-[r:HAS_FACT]->(f)
-		`, {
-			m_id: message.id,
-			f_id: text,
-			f_subject: fact.subject.text,
-			f_action: fact.action.text,
-			f_object: fact.object.text
-		})
-		.then(() => {
-			const keywords = [...(fact.subject.keywords || []), ...(fact.object.keywords || [])];
-			const entities = [...(fact.subject.entities || []), ...(fact.object.entities || [])];
+		try {
+			await session.run(`
+				MATCH (m:Message {id: {m_id} })
+				MERGE (f:Fact {id: {f_id} })
+					SET f.subject = {f_subject}, f.action = {f_action}, f.object = {f_object}
+				MERGE (m)-[r:HAS_FACT]->(f)
+			`, {
+				m_id: message.id,
+				f_id: text,
+				f_subject: fact.subject.text,
+				f_action: fact.action.text,
+				f_object: fact.object.text
+			})
+		} catch(e) {
+			console.error('error logging fact for message', e);
+			continue;
+		}
 
-			const kw_promises = keywords.map(kw => tx.run(`
+		const keywords = [...(fact.subject.keywords || []), ...(fact.object.keywords || [])];
+		for(let kw of keywords) {
+			try {
+				await session.run(`
 					MATCH (f:Fact {id: {f_id} })
 					MERGE (k:Keyword {id: {k_id}, types: {k_type} })
 
@@ -56,8 +60,16 @@ const factize = (message : any) => {
 					k_id: kw.text,
 					k_type: kw.knowledgeGraph ? kw.knowledgeGraph.typeHierarchy : '',
 					k_score: kw.relevance || 1
-				}).catch((err : Error) => console.error('tx run error factize keywordize', fact, err)))
-			const e_promises = entities.map(e => tx.run(`
+				})
+			} catch(e) {
+				console.error('error storing keyword for fact:', e);
+			}
+		}
+
+		const entities = [...(fact.subject.entities || []), ...(fact.object.entities || [])];
+		for(let e of entities) {
+			try {
+				await session.run(`
 					MATCH (f:Fact {id: {f_id} })
 					MERGE (e:Entity {id: {e_id}, types: {e_type} })
 					MERGE (f)-[r:HAS_ENTITY {score: {e_score} }]->(e)
@@ -66,34 +78,31 @@ const factize = (message : any) => {
 					e_id: e.text,
 					e_type: e.knowledgeGraph ? e.knowledgeGraph.typeHierarchy : '',
 					e_score: e.relevance || 1
-				}).catch((err : Error) => console.error('tx run error factize keywordize', fact, err)))
-
-			return Promise.all([...kw_promises, ...e_promises])
-		})
-		.catch((err : Error) => console.error('tx run error factize', fact, err))
-
-		promises.push(p);
+				})
+			} catch(e) {
+				console.error('error storing entitiy for fact:', e);
+			}
+		}
 	}
 
-	return Promise.all(promises)
-		.then(() => tx.commit())
-		.then(() => session.close())
-		.catch(err => { console.error('factize commit err', err); tx.commit(); session.close(); })
-
+	console.log('logged all facts');
+	return true;
 }
 
-const annotate = (message : any) => {
+async function annotate(message : any) {
 	const session = driver.session()
-	const tx = session.beginTransaction();
-
 	const transactions = toombatize.annotate(message);
 
-	for(let trans of transactions)
-		tx.run(trans).catch((err : Error) => console.error('toombatize tx run error', err));
+	for(let trans of transactions) {
+		try {
+			await session.run(trans)
+		} catch(e) {
+			console.error('toombatize error', e);
+		}
+	}
 
-	return tx.commit()
-		.then(() => session.close())
-		.catch(() => session.close())
+	session.close();
+	return true;
 }
 
 const mentionize = (message : any) : Promise<void> => {
