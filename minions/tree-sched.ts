@@ -19,6 +19,7 @@ import verge from './verge'
 import imageize from './image-ize';
 import imageCommenter from './image-commenter'
 import tankHunter from './tank-hunter';
+import stocks from './stocks';
 
 interface Node {
 	key: string,
@@ -63,7 +64,8 @@ const minion_modules : MinionModule[] = [
 	verge,
 	wolfram,
 	imageize,
-	tankHunter
+	tankHunter,
+	stocks
 	//imageCommenter
 ];
 
