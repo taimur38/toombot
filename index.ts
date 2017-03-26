@@ -95,7 +95,7 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 	*/
 
 	if(response.emojiReaction)
-		return emojiReply("toombot", message).catch(err => console.log(err));
+		return emojiReply(response.emoji, message).catch(err => console.log(err));
 
 	let slackResponse : SlackResponse;
 	if(response.threadReply || message.thread_ts)
