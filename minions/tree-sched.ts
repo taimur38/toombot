@@ -20,6 +20,7 @@ import imageize from './image-ize';
 import imageCommenter from './image-commenter'
 import tankHunter from './tank-hunter';
 import stocks from './stocks';
+import soul from './soul'
 
 interface Node {
 	key: string,
@@ -65,7 +66,8 @@ const minion_modules : MinionModule[] = [
 	wolfram,
 	imageize,
 	tankHunter,
-	stocks
+	stocks,
+	soul
 	//imageCommenter
 ];
 

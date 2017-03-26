@@ -21,10 +21,11 @@ rtm.start();
 
 const slackClean = (message : any) : SlackMessage => {
 
-	let mentions : SlackUser;
+	let mentions : Array<SlackUser> = [];
 	if(message.text) {
 		const ats = message.text.match(/@([^<>]+)/g);
 		mentions = ats && ats.length > 0 && ats.map((uid : any) => rtm.dataStore.getUserById(uid.slice(1))).filter((r : any) => r);
+		mentions = mentions || [];
 	}
 
 
@@ -71,6 +72,9 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 		return;
 	}
 
+	if(response.emoji)
+		return emojiReply(response.emoji, message).catch(err => console.log(err));
+
 	try {
 
 		const repostTimeout = new Promise((resolve, reject) => setTimeout(resolve, 5000));
@@ -93,9 +97,6 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 		console.error('nlc error', e)
 	}
 	*/
-
-	if(response.emojiReaction)
-		return emojiReply(response.emoji, message).catch(err => console.log(err));
 
 	let slackResponse : SlackResponse;
 	if(response.threadReply || message.thread_ts)
