@@ -194,6 +194,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 		if(res && (res.send || res.text)) {
 			console.log('sending', res);
 			emitter.emit('send', res, message);
+
 		}
 
 		const existing_minion = existing_minions.find(e => e.key == key && e.contextMatch(cumulativeMessage));

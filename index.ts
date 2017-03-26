@@ -1,4 +1,4 @@
-const { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } = require('@slack/client');
+const { RtmClient, WebClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } = require('@slack/client');
 import * as uuid from 'node-uuid'
 import { EventEmitter } from 'events'
 
@@ -14,6 +14,8 @@ const token = process.env.SLACK_TOKEN;
 const rtm = new RtmClient(token, {
 	dataStore: new MemoryDataStore({})
 });
+
+const web = new WebClient(token);
 
 rtm.start();
 
@@ -92,6 +94,9 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 	}
 	*/
 
+	if(response.emojiReaction)
+		return emojiReply("toombot", message).catch(err => console.log(err));
+
 	let slackResponse : SlackResponse;
 	if(response.threadReply || message.thread_ts)
 		slackResponse = await threadReply(response.text, message);
@@ -123,6 +128,24 @@ async function threadReply(text: string, ogMessage : SlackMessage) : Promise<Sla
 		type: RTM_EVENTS.MESSAGE
 	})
 }
+
+async function emojiReply(text : string, ogMessage : SlackMessage) : Promise<SlackResponse> {
+
+	return new Promise<SlackResponse>((resolve, reject) => {
+		web.reactions.add(text, {
+			channel: ogMessage.channel.id,
+			timestamp: ogMessage.ts,
+		}, (err, data) => {
+			if(err) {
+				reject(err);
+			}
+			else {
+				resolve(data as SlackResponse);
+			}
+		})
+	});
+}
+
 
 rtm.on(RTM_EVENTS.REACTION_ADDED, (reaction : any) => {
 	const cleaned = slackClean(reaction);
