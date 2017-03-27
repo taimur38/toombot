@@ -101,7 +101,7 @@ const annotate = (message : Message) => {
 	const session = driver.session()
 	const tx = session.beginTransaction();
 
-	const transactions = toombatize.annotate(message);
+	const transactions = toombatize.annotate(message, "Message");
 
 	for(let trans of transactions)
 		tx.run(trans).catch((err : Error) => console.error('toombatize tx run error', err));

@@ -91,7 +91,7 @@ async function factize(message : any) {
 
 async function annotate(message : any) {
 	const session = driver.session()
-	const transactions = toombatize.annotate(message);
+	const transactions = toombatize.annotate(message, "Message");
 
 	for(let trans of transactions) {
 		try {

@@ -1,9 +1,9 @@
-const annotate = (message : any) => [
-	...conceptize("Message", message.id, message.alchemy.concepts),
-	...entitize("Message", message.id, message.alchemy.entities),
-	...keywordize("Message", message.id, message.alchemy.keywords),
-	...taxonimize("Message", message.id, message.alchemy.taxonomy),
-	...emotionalize("Message", message.id, message.alchemy.emotions)
+const annotate = (message : any, type: string) => [
+	...conceptize(type, message.id, message.alchemy.concepts),
+	...entitize(type, message.id, message.alchemy.entities),
+	...keywordize(type, message.id, message.alchemy.keywords),
+	...taxonimize(type, message.id, message.alchemy.taxonomy),
+	...emotionalize(type, message.id, message.alchemy.emotions)
 ];
 
 const emotionalize = (nodeType : string, nodeId : string, emotions : Object & { [propName: string] : any }) => {
