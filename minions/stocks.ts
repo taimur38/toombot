@@ -26,9 +26,9 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
             const closes = diff_indicators.quote[0].close;
             const opens = diff_indicators.quote[0].open;
             const initialClose= closes[0];
-            //const currentPrice = isETF ? result.result.financialData.currentPrice.raw;
-            const initialDay = closes[closes.length - 2];
-            const currentPrice = closes[closes.length - 1];
+            const initialDay = closes[opens.length - 2];
+            //ronst currentPrice = closes[closes.length - 1];
+            const currentPrice = isETF ? closes[closes.length - 1] : result.financialData.currentPrice.raw;
 
             let percent = (currentPrice - initialClose)/initialClose * 100;
             const up = ":arrow_up_small:"
