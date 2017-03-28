@@ -60,6 +60,10 @@ rtm.on(RTM_EVENTS.MESSAGE, (message : any) => {
 		return;
 	}
 	const cleaned = slackClean(message);
+	if(cleaned.channel === undefined) {
+		console.log('channel undefined')
+		return;
+	}
 	console.log('text', cleaned.text, 'channel', cleaned.channel.name)
 
 	if(message.user.name != 'toombot')
