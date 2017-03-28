@@ -27,6 +27,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
             const opens = diff_indicators.quote[0].open;
             const initialClose= closes[0];
             //const currentPrice = isETF ? result.result.financialData.currentPrice.raw;
+            const initialDay = closes[closes.length - 2];
             const currentPrice = closes[closes.length - 1];
 
             let percent = (currentPrice - initialClose)/initialClose * 100;
@@ -39,13 +40,13 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
             }
 
             let dayDescrip = up; 
-            let dayPercent = (currentPrice - opens[opens.length - 1])/opens[opens.length - 1] * 100;
+            let dayPercent = (currentPrice - initialDay)/initialDay * 100;
             if(dayPercent < 0) {
                 dayDescrip = down; 
                 dayPercent = -1 * dayPercent;
             }
 
-            const base = `*${symbol}*\n Current:   $${currentPrice.toFixed(2)}\nToday:    ${dayDescrip} ${dayPercent.toFixed(2)}%\nMonth:   ${descriptor} ${percent.toFixed(2)}%`
+            const base = `*${symbol}*\nCurrent:   $${currentPrice.toFixed(2)}\nToday:    ${dayDescrip} ${dayPercent.toFixed(2)}%\nMonth:   ${descriptor} ${percent.toFixed(2)}%`
             if(isETF){
                 return {
                     text: base
