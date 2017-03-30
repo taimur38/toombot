@@ -20,6 +20,8 @@ import imageize from './image-ize';
 import imageCommenter from './image-commenter'
 import tankHunter from './tank-hunter';
 import quotes from './quotes';
+import stocks from './stocks';
+import soul from './soul'
 
 interface Node {
 	key: string,
@@ -65,7 +67,12 @@ const minion_modules : MinionModule[] = [
 	wolfram,
 	imageize,
 	tankHunter,
+<<<<<<< HEAD
 	quotes
+=======
+	stocks,
+	soul
+>>>>>>> 032d6dc900d235a5fe28c64c5295d9c6f087f93b
 	//imageCommenter
 ];
 
@@ -194,6 +201,7 @@ export async function dispatch(emitter : EventEmitter, message : SlackMessage) {
 		if(res && (res.send || res.text)) {
 			console.log('sending', res);
 			emitter.emit('send', res, message);
+
 		}
 
 		const existing_minion = existing_minions.find(e => e.key == key && e.contextMatch(cumulativeMessage));

@@ -1,4 +1,4 @@
-const { RtmClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } = require('@slack/client');
+const { RtmClient, WebClient, RTM_EVENTS, RTM_CLIENT_EVENTS, MemoryDataStore } = require('@slack/client');
 import * as uuid from 'node-uuid'
 import { EventEmitter } from 'events'
 
@@ -15,14 +15,17 @@ const rtm = new RtmClient(token, {
 	dataStore: new MemoryDataStore({})
 });
 
+const web = new WebClient(token);
+
 rtm.start();
 
 const slackClean = (message : any) : SlackMessage => {
 
-	let mentions : SlackUser;
+	let mentions : Array<SlackUser> = [];
 	if(message.text) {
 		const ats = message.text.match(/@([^<>]+)/g);
 		mentions = ats && ats.length > 0 && ats.map((uid : any) => rtm.dataStore.getUserById(uid.slice(1))).filter((r : any) => r);
+		mentions = mentions || [];
 	}
 
 
@@ -57,6 +60,10 @@ rtm.on(RTM_EVENTS.MESSAGE, (message : any) => {
 		return;
 	}
 	const cleaned = slackClean(message);
+	if(cleaned.channel === undefined) {
+		console.log('channel undefined')
+		return;
+	}
 	console.log('text', cleaned.text, 'channel', cleaned.channel.name)
 
 	if(message.user.name != 'toombot')
@@ -68,6 +75,9 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 	if(message.user.name == 'toombot') {
 		return;
 	}
+
+	if(response.emoji)
+		return emojiReply(response.emoji, message).catch(err => console.log(err));
 
 	try {
 
@@ -123,6 +133,24 @@ async function threadReply(text: string, ogMessage : SlackMessage) : Promise<Sla
 		type: RTM_EVENTS.MESSAGE
 	})
 }
+
+async function emojiReply(text : string, ogMessage : SlackMessage) : Promise<SlackResponse> {
+
+	return new Promise<SlackResponse>((resolve, reject) => {
+		web.reactions.add(text, {
+			channel: ogMessage.channel.id,
+			timestamp: ogMessage.ts,
+		}, (err, data) => {
+			if(err) {
+				reject(err);
+			}
+			else {
+				resolve(data as SlackResponse);
+			}
+		})
+	});
+}
+
 
 rtm.on(RTM_EVENTS.REACTION_ADDED, (reaction : any) => {
 	const cleaned = slackClean(reaction);
