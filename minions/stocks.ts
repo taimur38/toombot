@@ -29,7 +29,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
                 const officers = result.assetProfile.companyOfficers;
                 const bigBoss = officers.sort((a, b) => b.totalPay.raw - a.totalPay.raw)[0];
 
-                ceoInfo = `The highest paid officer is ${bigBoss.name} the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
+                ceoInfo = `The highest paid officer is ${bigBoss.name}, the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
             }
 
             const closes = diff_indicators.quote[0].close;
@@ -62,7 +62,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
                 }
             }
             return { 
-                text: `${base}\nAnalyst recommendation: ${result.financialData.recommendationKey}\n${ceoInfo}`
+                text: `${base}\nForward P/E: ${result.defaultKeyStatistics.forwardPE.fmt}\nAnalyst recommendation: *${result.financialData.recommendationKey.toUpperCase()}* based on ${result.financialData.numberOfAnalystOpinions.fmt} Analyst Opinions.\n${ceoInfo}`
             }
         })
         .catch(err => {
