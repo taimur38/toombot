@@ -40,8 +40,8 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
             const currentPrice = isETF ? closes[closes.length - 1] : result.financialData.currentPrice.raw;
 
             let percent = (currentPrice - initialClose)/initialClose * 100;
-            const up = ":arrow_up_small:"
-            const down = ":arrow_down_small:"
+            const up = ":green_arrow_up:"
+            const down = ":red_arrow_down:"
             let descriptor = up;
             if(percent < 0){
                 descriptor = down; 
