@@ -10,18 +10,27 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
     console.log(symbol)
 
     const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?formatted=true&crumb=lnRQn70gX0Q&lang=en-US&region=US&modules=summaryProfile,financialData,recommendationTrend,upgradeDowngradeHistory,earnings,defaultKeyStatistics,calendarEvents,assetProfile,topHoldings,fundPerformance,fundProfile`;
-
     const chart_url = `https://query2.finance.yahoo.com/v7/finance/chart/${symbol}?range=1mo&interval=1d&indicators=quote&includeTimestamps=true&includePrePost=false`
+    const disambiguateURL = `http://d.yimg.com/aq/autoc?query=${symbol}&region=US&lang=en-US`
 
-    return Promise.all([axios.get(url), axios.get(chart_url)])
-        .then(res => ({ financials: res[0].data as any, chart: res[1].data as any }))
+    return Promise.all([axios.get(url), axios.get(chart_url), axios.get(disambiguateURL)])
+        .then(res => ({ financials: res[0].data as any, chart: res[1].data as any, disambiguate: res[2].data as any }))
         .then(compoundResult => {
             //console.log(data.quoteSummary.result);
             const result = compoundResult.financials.quoteSummary.result[0];
 
             const isETF = result.fundPerformance !== undefined;
 
+            const name = compoundResult.disambiguate.ResultSet.Result[0].name;
             const diff_indicators = compoundResult.chart.chart.result[0].indicators;
+
+            let ceoInfo = '';
+            if(!isETF) {
+                const officers = result.assetProfile.companyOfficers;
+                const bigBoss = officers.sort((a, b) => b.totalPay.raw - a.totalPay.raw)[0];
+
+                ceoInfo = `The highest paid officer is ${bigBoss.name} the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
+            }
 
             const closes = diff_indicators.quote[0].close;
             const opens = diff_indicators.quote[0].open;
@@ -46,14 +55,14 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
                 dayPercent = -1 * dayPercent;
             }
 
-            const base = `*${symbol}*\nCurrent:   $${currentPrice.toFixed(2)}\nToday:    ${dayDescrip} ${dayPercent.toFixed(2)}%\nMonth:   ${descriptor} ${percent.toFixed(2)}%`
+            const base = `*${symbol}: ${name}*\nCurrent:   $${currentPrice.toFixed(2)}\nToday:    ${dayDescrip} ${dayPercent.toFixed(2)}%\nMonth:   ${descriptor} ${percent.toFixed(2)}%`
             if(isETF){
                 return {
                     text: base
                 }
             }
             return { 
-                text: `${base}\nAnalyst recommendation: ${result.financialData.recommendationKey}`
+                text: `${base}\nAnalyst recommendation: ${result.financialData.recommendationKey}\n${ceoInfo}`
             }
         })
         .catch(err => {
