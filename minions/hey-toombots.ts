@@ -5,6 +5,7 @@ import * as commenter from './reddit'
 
 import { MinionModule, MinionResult, SlackMessage } from '../types'
 import * as context from './context'
+import * as alchemize from './alchemize'
 
 const neo4j = require('neo4j-driver').v1;
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
@@ -170,7 +171,7 @@ function summarize(response: SlackMessage) : Promise<MinionResult> {
 	})
 }
 
-async function thoughts(response : SlackMessage & context.Response) : Promise<MinionResult> {
+async function thoughts(response : SlackMessage & context.Response & alchemize.Response) : Promise<MinionResult> {
 	let concepts = response.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
 	let entities = response.context.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
 
@@ -199,7 +200,7 @@ async function thoughts(response : SlackMessage & context.Response) : Promise<Mi
 				.sort((a : any, b : any) => b.score - a.score)
 				.slice(0,10);
 		})
-		.then(flattened_results               => Promise.all(flattened_results.map(analyzer.default.analyze)))
+		.then(flattened_results               => Promise.all<analyzer.SearchResult>(flattened_results.map(analyzer.default.analyze)))
 		.then(analyzed_results                => analyzer.default.rank(analyzed_results, response, analyzer.default.thresholds))
 		.then(ranked                          => ranked[0])
 		.then(winner                          => winner == undefined ? undefined : { text: winner.message, send: true })
