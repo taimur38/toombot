@@ -27,9 +27,10 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
             let ceoInfo = '';
             if(!isETF) {
                 const officers = result.assetProfile.companyOfficers;
-                const bigBoss = officers.sort((a, b) => b.totalPay.raw - a.totalPay.raw)[0];
+                const bigBoss = officers.sort((a, b) => (b.totalPay ? b.totalPay.raw : 0) - (a.totalPay ? a.totalPay.raw : 0))[0];
 
-                ceoInfo = `The highest paid officer is ${bigBoss.name}, the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
+                if(bigBoss.totalPay && bigBoss.totalPay.fmt)
+                    ceoInfo = `The highest paid officer is ${bigBoss.name}, the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
             }
 
             const closes = diff_indicators.quote[0].close;
