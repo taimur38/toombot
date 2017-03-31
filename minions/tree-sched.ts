@@ -67,12 +67,9 @@ const minion_modules : MinionModule[] = [
 	wolfram,
 	imageize,
 	tankHunter,
-<<<<<<< HEAD
-	quotes
-=======
+	quotes,
 	stocks,
 	soul
->>>>>>> 032d6dc900d235a5fe28c64c5295d9c6f087f93b
 	//imageCommenter
 ];
 
