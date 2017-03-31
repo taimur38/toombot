@@ -30,6 +30,7 @@
     "@types/form-data": "0.0.33",
     "@types/node": "^6.0.46",
     "@types/node-uuid": "0.0.28",
-    "@types/xmldom": "^0.1.28"
+    "@types/xmldom": "^0.1.28",
+    "typescript": "^2.2.2"
   }
 }
