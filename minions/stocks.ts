@@ -25,13 +25,6 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
             const diff_indicators = compoundResult.chart.chart.result[0].indicators;
 
             let ceoInfo = '';
-            if(!isETF) {
-                const officers = result.assetProfile.companyOfficers;
-                const bigBoss = officers.sort((a, b) => (b.totalPay ? b.totalPay.raw : 0) - (a.totalPay ? a.totalPay.raw : 0))[0];
-
-                if(bigBoss.totalPay && bigBoss.totalPay.fmt)
-                    ceoInfo = `The highest paid officer is ${bigBoss.name}, the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
-            }
 
             const closes = diff_indicators.quote[0].close;
             const opens = diff_indicators.quote[0].open;
@@ -56,14 +49,29 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
                 dayPercent = -1 * dayPercent;
             }
 
+            if(!isETF) {
+                const officers = result.assetProfile.companyOfficers;
+                const bigBoss = officers.sort((a, b) => (b.totalPay ? b.totalPay.raw : 0) - (a.totalPay ? a.totalPay.raw : 0))[0];
+
+                if(bigBoss.totalPay && bigBoss.totalPay.fmt)
+                    ceoInfo = `The highest paid officer is ${bigBoss.name}, the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
+            }
+
             const base = `*${symbol}: ${name}*\nCurrent:   $${currentPrice.toFixed(2)}\nToday:    ${dayDescrip} ${dayPercent.toFixed(2)}%\nMonth:   ${descriptor} ${percent.toFixed(2)}%`
             if(isETF){
                 return {
                     text: base
                 }
             }
+            const lines = [
+                base,
+                `Forward P/E: ${result.defaultKeyStatistics.forwardPE.fmt}`,
+                `Analyst recommendation: *${result.financialData.recommendationKey.toUpperCase()}* based on ${result.financialData.numberOfAnalystOpinions.fmt} Analyst Opinions.`,
+                ceoInfo
+            ];
+
             return { 
-                text: `${base}\nForward P/E: ${result.defaultKeyStatistics.forwardPE.fmt}\nAnalyst recommendation: *${result.financialData.recommendationKey.toUpperCase()}* based on ${result.financialData.numberOfAnalystOpinions.fmt} Analyst Opinions.\n${ceoInfo}`
+                text: lines.join('\n')
             }
         })
         .catch(err => {
