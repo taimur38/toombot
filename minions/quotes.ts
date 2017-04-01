@@ -55,13 +55,17 @@ async function quotes(response : SlackMessage & context.Response & alchemy.Respo
     .map(c => `"${c.text.toLowerCase()}"`);
   const session = driver.session();
 
-  const concepts_str = `^(${concept_merge.filter(c => c.text.search(/quot/gi) < 0).reduce((acc, val, ind) => `${acc}${ind > 0 ? "|" : ""}.*${val.text.toLowerCase().replace(/[.*]/g, "")}.*`, "")})`;
+  const concepts_str = `^(${concept_merge
+      .filter(c => c.text.search(/quot/gi) < 0)
+      .map(c => ".*" + c.text.toLowerCase().replace(/[.*]/g, "") + ".*")
+      .join("|")
+  })`
 
   const query = `
     MATCH (a:Author)--(q:Quote)-[r:HAS_CONCEPT|:HAS_ENTITY|:HAS_KEYWORD]-(c)
-    WHERE toFloat(r.score) > ${query_threshold} AND toLower(c.id)  =~ "${concepts_str}"
-    RETURN a.id as author, q.text as quote, collect(c.id) as evidence, sum(r.score) as score, filter(x in collect(c) where toLower(x.id) in [${concept_labels}]) as overlap
-    ORDER BY SIZE(overlap) DESC
+    WHERE toFloat(r.score) > ${query_threshold} AND toLower(c.id) =~ "${concepts_str}"
+    RETURN a.id as author, q.text as quote, collect(c.id) as evidence, sum(toFloat(r.score)) as score, filter(x in collect(c) where toLower(x.id) in [${concept_labels}]) as overlap
+    ORDER BY SIZE(overlap) DESC, score DESC
     LIMIT 10
   `;
 
@@ -74,7 +78,8 @@ async function quotes(response : SlackMessage & context.Response & alchemy.Respo
 
     }
 
-    const record = match ? results.records[parseInt(`${results.records.length * Math.random()}`)] : results.records.sort((a, b) => b.get("score") - a.get("score"))[0];
+    const index = match ? parseInt(`${results.records.length * Math.random()}`) : 0;
+    const record = results.records[index];
 
     if(!record)
       return { text: `i have no quotes`, evidence: `nothing matched ${concept_labels}`}
