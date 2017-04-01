@@ -18,14 +18,7 @@ function* onMessage(message : SlackMessage & context.Response & alchemy.Response
 
 async function quotes(response : SlackMessage & context.Response & alchemy.Response) : Promise<MinionResult> {
 
-
-	if(response.text.search(/quote/gi) == -1) {
-    console.log('doesnt have quote');
-    return;
-  }
-
-  console.log(response.text);
-  const match = response.text.match(/quote for (.+)/i);
+  const match = response.text.match(/quote(.+)? (for|about|regarding|with|on) (.+)/i);
   console.log("MATCH: ", match)
   let concept_merge = [...response.context.concepts, ...response.context.entities, ...response.context.keywords]
     .filter(c => c.relevance > context_threshold)
@@ -58,11 +51,18 @@ async function quotes(response : SlackMessage & context.Response & alchemy.Respo
   console.log(query)
 
   try {
-    const results = await session.run(query);
+    const results = await Promise.race([session.run(query), timeoutPromise(5000)]);
+    if(!results.records) {
+      console.log(results)
+      return { text: `query timed out`, send: true}
 
-    const record = results.records[0];
+    }
+    console.log('got results')
+
+    const record = results.records[parseInt(`${results.records.length * Math.random()}`)];
     if(!record)
       return { text: `i have no quotes`, send: true }
+
     return { text: `${record.get('quote')}\n\n*${record.get('author')}*`, send: true };
 
   } catch(e) {
@@ -71,19 +71,11 @@ async function quotes(response : SlackMessage & context.Response & alchemy.Respo
     console.log('closing session')
     session.close();
   }
-
-  /*
-    .then(res => {
-      const record = res.records[0];
-      session.close();
-      if (!record) {
-          return false;
-      }
-      return { text: `"${record.get('quote')}" - ${record.get('author')}`, send: true };
-    })
-    .catch(err => session.close())
-    */
 }
+
+const timeoutPromise = ms => new Promise((resolve, reject) => {
+  setTimeout(resolve, ms);
+})
 
 const mod : MinionModule = {
   onMessage,
