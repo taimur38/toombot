@@ -13,7 +13,24 @@ const query_threshold = 0.4;
 const msg_threshold = 0.2;
 
 function* onMessage(message : SlackMessage & context.Response & alchemy.Response) : Iterator<Promise<MinionResult>> {
-  return quotes(message);
+
+    let followUp = undefined;
+    const response = yield quotes(message)
+      .then((payload : any) => {
+        if(payload.evidence) {
+          followUp = payload.evidence;
+          console.log('payload');
+          return { text: payload.text, send: true, filter: (msg : SlackMessage) => msg.text.search(/why/gi) > -1 };
+        }
+        else {
+          return { text: payload.text, send: true };
+        }
+      })
+    
+    console.log("HERE");
+    if(followUp)
+      return { text: followUp, send: true };
+
 }
 
 async function quotes(response : SlackMessage & context.Response & alchemy.Response) : Promise<MinionResult> {
@@ -31,19 +48,18 @@ async function quotes(response : SlackMessage & context.Response & alchemy.Respo
   }
   
   if(concept_merge.length == 0) {
-    return { text: 'i have no quotes', send: true }
+    return { text: 'i have no quotes', evidence: "nothing to search on"}
   }
   
   const concept_labels = concept_merge
     .filter(c => c.text.search(/quot/gi) < 0)
     .map(c => `"${c.text.toLowerCase()}"`);
   const session = driver.session();
-  console.log(`c.id in [${concept_labels}]`);
 
   const query = `
     MATCH (a:Author)--(q:Quote)-[r:HAS_CONCEPT|:HAS_ENTITY|:HAS_KEYWORD]-(c)
     WHERE toFloat(r.score) > ${query_threshold} AND toLower(c.id)  in [${concept_labels}]
-    RETURN a.id as author, q.text as quote, filter(x in collect(c) where toLower(x.id) in [${concept_labels}]) as overlap 
+    RETURN a.id as author, q.text as quote, collect(c.id) as evidence, filter(x in collect(c) where toLower(x.id) in [${concept_labels}]) as overlap 
     ORDER BY SIZE(overlap) DESC 
     LIMIT 10
   `;
@@ -52,18 +68,16 @@ async function quotes(response : SlackMessage & context.Response & alchemy.Respo
 
   try {
     const results = await Promise.race([session.run(query), timeoutPromise(5000)]);
-    if(!results.records) {
-      console.log(results)
-      return { text: `query timed out`, send: true}
+    if(!results) {
+      return { text: `query timed out` }
 
     }
-    console.log('got results')
 
     const record = results.records[parseInt(`${results.records.length * Math.random()}`)];
     if(!record)
-      return { text: `i have no quotes`, send: true }
+      return { text: `i have no quotes`, evidence: `nothing matched ${concept_labels}`}
 
-    return { text: `${record.get('quote')}\n\n*${record.get('author')}*`, send: true };
+    return { text: `${record.get('quote')}\n\n*${record.get('author')}*`, evidence: `I searched on: ${concept_labels}, and I think this is an article about ${record.get('evidence')}` };
 
   } catch(e) {
     console.error(e)
