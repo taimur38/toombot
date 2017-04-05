@@ -49,7 +49,7 @@ function* onMessage(message : SlackMessage & Response) : Iterator<Promise<Minion
 
 			return getComments(top_permalink);
 		})
-		.catch(err => console.log(err))
+		.catch(err => console.error("reddit error", err.data.message || err))
 }
 
 export const getComments = (permalink : SlackMessage) => session.get(`${permalink}.json`)

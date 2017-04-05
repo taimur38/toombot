@@ -1,7 +1,7 @@
 const neo4j = require('neo4j-driver').v1;
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
-const toombatize = require('./toombatize');
+import toomba from './toombatize';
 
 const graph = (message : any) => {
 	return Promise.all([
@@ -11,6 +11,7 @@ const graph = (message : any) => {
 		mentionize(message),
 		factize(message)
 	])
+	.then(() => console.log("I DID IT"))
 	.catch(err => {
 		console.error('promise all error in meta', err)
 	})
@@ -91,7 +92,7 @@ async function factize(message : any) {
 
 async function annotate(message : any) {
 	const session = driver.session()
-	const transactions = toombatize.annotate(message, "Message");
+	const transactions = toomba.annotate(message, "Message");
 
 	for(let trans of transactions) {
 		try {
@@ -105,117 +106,127 @@ async function annotate(message : any) {
 	return true;
 }
 
-const mentionize = (message : any) : Promise<void> => {
+async function mentionize(message : any) : Promise<void> {
 
 	if(message.mentions == undefined || message.mentions.length == 0) {
 		return Promise.resolve();
 	}
 
 	const session = driver.session();
-	const tx = session.beginTransaction();
 
 	for(let i = 0; i < message.mentions.length; i++) {
-		const mention = message.mentions[0];
-		if(!mention || !mention.id)
-			continue;
-		tx.run(`
-			MATCH (m:Message {id: {m_id} })
-			MERGE (u:User {id: {u_id} })
-			MERGE (m)-[r:MENTIONS_USER]->(u)
-		`, {
-			m_id: message.id,
-			u_id: mention.id
-		}).catch((err : Error) => console.error('tx run error mentionize', mention, err))
+		try {
+
+			const mention = message.mentions[0];
+			if(!mention || !mention.id)
+				continue;
+			await session.run(`
+				MATCH (m:Message {id: {m_id} })
+				MERGE (u:User {id: {u_id} })
+				MERGE (m)-[r:MENTIONS_USER]->(u)
+			`, {
+				m_id: message.id,
+				u_id: mention.id
+			})
+		} catch(e) {
+			console.error('mentionize error', e)
+		}
 	}
 
-	return tx.commit()
-		.then(() => session.close())
-		.catch((err : Error) => {
-			console.error('tx commit err mentionize', message.mentions, err)
-			session.close()
-		})
-
+	session.close();
+	return;
 }
 
-const companize = (message : any) => {
+async function companize(message : any) {
 	if(message.companies.length == 0)
 		return Promise.resolve(false);
 
 	const session = driver.session();
-	const tx = session.beginTransaction();
 
 	for(let i = 0; i < message.companies.length; i++) {
-		const company = message.companies[i];
-		tx.run(`
-			MATCH (m:Message {id: {m_id} })
-			MERGE (c:Company {id: {c_id} })
-			ON CREATE SET
-				c.name = {c_name},
-				c.symbol = {c_symbol},
-				c.exchange = {c_exchange},
-				c.type = {c_type},
-				c.exchDisp = {c_exchDisp},
-				c.typeDisp = {c_typeDisp},
-				c.evidence = {c_evidence}
+		try {
+			const company = message.companies[i];
+			await session.run(`
+				MATCH (m:Message {id: {m_id} })
+				MERGE (c:Company {id: {c_id} })
+				ON CREATE SET
+					c.name = {c_name},
+					c.symbol = {c_symbol},
+					c.exchange = {c_exchange},
+					c.type = {c_type},
+					c.exchDisp = {c_exchDisp},
+					c.typeDisp = {c_typeDisp},
+					c.evidence = {c_evidence}
 
-			MERGE (m)-[r:MENTIONS_COMPANY {rank: {r_rank} }]->(c)
-		`, {
-			m_id: message.id,
-			c_id: company.symbol + '-' + company.exch,
-			c_name: company.name,
-			c_symbol: company.symbol,
-			c_exchange: company.exch,
-			c_type: company.type,
-			c_exchDisp: company.exchDisp,
-			c_typeDisp: company.typeDisp,
-			c_evidence: company.evidence,
-			r_rank: i
-		}).catch((err : Error) => console.error('tx run error', message.companies, err))
+				MERGE (m)-[r:MENTIONS_COMPANY {rank: {r_rank} }]->(c)
+			`, {
+				m_id: message.id,
+				c_id: company.symbol + '-' + company.exch,
+				c_name: company.name,
+				c_symbol: company.symbol,
+				c_exchange: company.exch,
+				c_type: company.type,
+				c_exchDisp: company.exchDisp,
+				c_typeDisp: company.typeDisp,
+				c_evidence: company.evidence,
+				r_rank: i
+			})
+		} catch(e) {
+			console.error('error companizing message', e)
+		}
 	}
 
-    return tx.commit().then(() => session.close()).catch(() => session.close());
+	session.close();
+	return;
 }
 
-const linkize = (message : any) => {
+async function linkize(message : any) {
 
 	if(message.links.length == 0)
 		return Promise.resolve(false);
 
 	const session = driver.session();
-	const tx = session.beginTransaction();
 
 	for(let link of message.links) {
-		tx.run(`
-			MATCH (m:Message {id: {m_id} })
-			MERGE (l:Link {id: {l_url}})
-			MERGE (m)-[r:CONTAINS_LINK]->(l)
-		`, {
-			m_id: message.id,
-			l_url: link.url
-		}).catch((err : any) => console.error('tx run error', message.links, err))
-	}
-
-	for(let link_meta of message.link_meta) {
-		console.log(link_meta.link.url)
-		for(let tag of link_meta.meta) {
-			tx.run(`
-				MERGE (l:Link {id: {l_id} })
-				MERGE (t:Tag {id: {t_id}})
-				ON CREATE SET
-					t.label = {t_label},
-					t.type = {t_type}
-
-				MERGE (l)-[r:HAS_TAG]->(t)
+		try {
+			await session.run(`
+				MATCH (m:Message {id: {m_id} })
+				MERGE (l:Link {id: {l_url}})
+				MERGE (m)-[r:CONTAINS_LINK]->(l)
 			`, {
-				l_id: link_meta.link.url,
-				t_id: tag.type + '-' + tag.label,
-				t_label: tag.label,
-				t_type: tag.type
-			}).catch((err : any) => console.error('tx run error', message.link_meta, err))
+				m_id: message.id,
+				l_url: link.url
+			})
+		} catch(e) {
+			console.error('error linkizing message', e)
 		}
 	}
 
-    return tx.commit().then(() => session.close()).catch(() => session.close())
+	for(let link_meta of message.link_meta) {
+		for(let tag of link_meta.meta) {
+			try {
+				await session.run(`
+					MERGE (l:Link {id: {l_id} })
+					MERGE (t:Tag {id: {t_id}})
+					ON CREATE SET
+						t.label = {t_label},
+						t.type = {t_type}
+
+					MERGE (l)-[r:HAS_TAG]->(t)
+				`, {
+					l_id: link_meta.link.url,
+					t_id: tag.type + '-' + tag.label,
+					t_label: tag.label,
+					t_type: tag.type
+				})
+			} catch(e) {
+				console.error('error logging tagging link', e)
+			}
+		}
+	}
+
+	session.close();
+	return;
 }
 
 export default {
