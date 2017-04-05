@@ -37,7 +37,7 @@ const lookupSymbol = (word : string) => axios.get(`http://d.yimg.com/aq/autoc?qu
 		.then(rsp => rsp.ResultSet.Result as any[])
 //		.then(results => results.filter(r => approvedExchanges.indexOf(r.exch) > -1))
 		.then(nasdaqs => nasdaqs.length > 0 ? Object.assign({}, nasdaqs[0], { evidence: word }) : undefined)
-		.catch(console.error)
+		.catch(err => console.error('couldnt get symbol for ', word))
 
 const mod : MinionModule = {
 	onMessage,
