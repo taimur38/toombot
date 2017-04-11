@@ -35,7 +35,7 @@ function* onMessage(message : SlackMessage & alchemy.Response) : Iterator<Promis
 const mod : MinionModule = {
     key: 'soul',
     onMessage,
-    filter: (msg : SlackMessage) => msg.mentions.some(x => x.name == "toombot") || msg.text.search(/^(toombot|fiona)/gi) > -1,
+    filter: (msg : SlackMessage) => msg.mentions.some(x => x.name == "toombot") || msg.text.search(/(toombot|fiona)/gi) > -1,
     requirements: ['alchemy']
 }
 
