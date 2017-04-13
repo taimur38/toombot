@@ -19,7 +19,13 @@ function* onMessage(message : SlackMessage & alchemy.Response) : Iterator<Promis
             emoji: "shiny_eyes",
             send: true
         })
-    
+
+    if(message.text.search(/fiona/gi) > -1)
+        return Promise.resolve({
+            emoji: "fiona",
+            send: true
+        })
+
     return Promise.resolve({
         emoji: "toombot",
         send: true
@@ -29,7 +35,7 @@ function* onMessage(message : SlackMessage & alchemy.Response) : Iterator<Promis
 const mod : MinionModule = {
     key: 'soul',
     onMessage,
-    filter: (msg : SlackMessage) => msg.mentions.some(x => x.name == "toombot") || msg.text.search(/toombot/gi) > -1,
+    filter: (msg : SlackMessage) => msg.mentions.some(x => x.name == "toombot") || msg.text.search(/(toombot|fiona)/gi) > -1,
     requirements: ['alchemy']
 }
 
