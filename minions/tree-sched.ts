@@ -23,6 +23,7 @@ import quotes from './quotes';
 import stocks from './stocks';
 import soul from './soul';
 import memory from './memory';
+import imdb from './imdb';
 
 interface Node {
 	key: string,
@@ -71,7 +72,8 @@ const minion_modules : MinionModule[] = [
 	quotes,
 	stocks,
 	soul,
-	memory
+	memory,
+	imdb
 	//imageCommenter
 ];
 

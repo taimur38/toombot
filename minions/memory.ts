@@ -30,15 +30,15 @@ function getAnswer(message : SlackMessage & alchemy.Response) : Promise<MinionRe
     text: message.text
 	})
 	.then((res : any) => {
-    let final_record = '';
+    let record = '';
     for(let rec of res.records) {
-      final_record = final_record + (rec.get('id')) + " | "
+      record = record + (rec.get('id')) + " | "
     }
 		session.close();
 		if(res.records.length ==0) {
 			return false;
 		}
-		return { text: `${final_record}`, send: true }
+		return { text: `${record}`, send: true }
 	})
 	.catch((err : any) => {
 		session.close();
