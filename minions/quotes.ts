@@ -20,7 +20,12 @@ function* onMessage(message : SlackMessage & context.Response & alchemy.Response
         if(payload.evidence) {
           followUp = payload.evidence;
           console.log('payload');
-          return { text: payload.text, send: true, filter: (msg : SlackMessage) => msg.text.search(/why/gi) > -1 };
+          return { 
+            text: payload.text, 
+            send: true, 
+            filter: (msg : SlackMessage) => msg.text.search(/why/gi) > -1,
+            contextMatch: (msg : SlackMessage) => msg.channel.id == message.channel.id
+          };
         }
         else {
           return { text: payload.text, send: true };

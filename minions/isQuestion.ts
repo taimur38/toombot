@@ -6,13 +6,14 @@ export interface Response {
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
+	const lowered = message.text.toLowerCase();
 	return Promise.resolve(
 		{ isQuestion: (
-			message.text.split(' ').length >= 3 && (
-				message.text.startsWith("what") ||
-				message.text.startsWith("how") ||
-				message.text.startsWith("who") ||
-				message.text.indexOf("?") >= 0
+			lowered.split(' ').length >= 3 && (
+				lowered.startsWith("what") ||
+				lowered.startsWith("how") ||
+				lowered.startsWith("who") ||
+				lowered.indexOf("?") >= 0
 			)
 		)
 	});
