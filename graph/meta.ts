@@ -19,7 +19,7 @@ const graph = (message : any) => {
 
 async function factize(message : any) {
 
-	if(!message.alchemy || message.alchemy.relations.length == 0)
+	if(!message.alchemy || message.alchemy.relations.length == 0 || message.isQuestion)
 		return false;
 
 	const session = driver.session();
