@@ -1,4 +1,3 @@
-import { SlackMessage, MinionResult, MinionModule } from '../types'
 import { bot } from '../constants'
 import * as isQuestion from './isQuestion'
 import * as alchemy from './alchemize'

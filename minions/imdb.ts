@@ -1,7 +1,5 @@
 import * as axios from 'axios';
 
-import { SlackMessage, MinionResult, MinionModule } from '../types'
-
 function* onMessage(message: SlackMessage): Iterator<Promise<MinionResult>> {
 
   let query = message.text.replace('imdb ', '');
