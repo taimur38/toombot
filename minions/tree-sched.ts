@@ -20,9 +20,11 @@ import imageCommenter from './image-commenter'
 import tankHunter from './tank-hunter';
 import quotes from './quotes';
 import stocks from './stocks';
-import soul from './soul'
 import temperature from './temperature'
 import tempDebug from './temp-debug'
+import soul from './soul';
+import memory from './memory';
+import imdb from './imdb';
 
 interface Node {
 	key: string,
@@ -72,7 +74,9 @@ const minion_modules : MinionModule[] = [
 	stocks,
 	soul,
 	temperature,
-	tempDebug
+	tempDebug,
+	memory,
+	imdb
 	//imageCommenter
 ];
 
