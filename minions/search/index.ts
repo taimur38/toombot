@@ -1,5 +1,4 @@
 import * as alchemy from '../../lib/alchemy'
-import { MinionModule, MinionResult, SlackMessage } from '../../types'
 import * as context from '../context'
 import * as alchemize from '../alchemize'
 import * as links from '../links'
@@ -38,12 +37,12 @@ function* onMessage(message : SlackMessage & context.Response & alchemize.Respon
 		dates: [] as any[]
 	}
 
-	message.context = message.context || context;
+	message.context.alchemy = message.context.alchemy || context;
 
 	const msg = Object.assign({}, message, {
 		context: {
-			concepts: message.context.concepts.filter((c) => parseFloat(c.relevance) > thresholds.concepts),
-			entities: message.context.entities.filter((c) => parseFloat(c.relevance) > thresholds.entities)
+			concepts: message.context.alchemy.concepts.filter((c) => parseFloat(c.relevance) > thresholds.concepts),
+			entities: message.context.alchemy.entities.filter((c) => parseFloat(c.relevance) > thresholds.entities)
 		},
 		alchemy: {
 			concepts: message.alchemy.concepts.filter((c) => parseFloat(c.relevance) > thresholds.concepts),

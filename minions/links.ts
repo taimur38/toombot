@@ -1,5 +1,3 @@
-import { SlackMessage, MinionModule } from '../types'
-
 const key = 'links'
 
 export interface Response {

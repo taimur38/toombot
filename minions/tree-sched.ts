@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events';
-import { MinionModule, SlackMessage, ActiveMinion, MinionResult } from '../types'
 import hello from './hello';
 import alchemize from './alchemize'
 import companies from './companies';
@@ -22,6 +21,8 @@ import tankHunter from './tank-hunter';
 import quotes from './quotes';
 import stocks from './stocks';
 import soul from './soul'
+import temperature from './temperature'
+import tempDebug from './temp-debug'
 
 interface Node {
 	key: string,
@@ -69,7 +70,9 @@ const minion_modules : MinionModule[] = [
 	tankHunter,
 	quotes,
 	stocks,
-	soul
+	soul,
+	temperature,
+	tempDebug
 	//imageCommenter
 ];
 

@@ -1,5 +1,4 @@
 import * as axios from 'axios';
-import { SlackMessage, MinionResult, MinionModule } from '../types'
 import { Response } from './links';
 
 const session = axios.create({

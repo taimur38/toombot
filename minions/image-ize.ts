@@ -1,6 +1,5 @@
 import { classify } from '../lib/visual-recognition'
 import * as linkMeta from './link-meta'
-import { SlackMessage, MinionModule } from '../types';
 import { classifier } from '../lib/visual-recognition'
 
 export interface Response {

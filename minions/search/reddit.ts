@@ -1,5 +1,4 @@
 import * as axios  from 'axios'
-import { SlackMessage } from '../../types'
 import { SearchResult } from '../search'
 import * as context from '../context'
 import * as alchemized from '../alchemize'
@@ -24,7 +23,7 @@ export const search = (message : SlackMessage & context.Response & alchemized.Re
 	const concept_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords]
 		.reduce((agg, curr) => agg.indexOf(curr.text) > -1 ? agg : agg + " AND " + curr, '')
 
-	const contextualized_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords, ...message.context.entities, ...message.context.concepts]
+	const contextualized_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords, ...message.context.alchemy.entities, ...message.context.alchemy.concepts]
 		.reduce((agg, curr) => {
 			if(agg == '') {
 				return curr.text;

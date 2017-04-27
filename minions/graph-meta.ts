@@ -1,4 +1,3 @@
-import { SlackMessage, MinionModule } from '../types';
 import * as alchmemize from './alchemize';
 import * as linkMeta from './link-meta';
 import * as links from './links';

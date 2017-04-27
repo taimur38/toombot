@@ -1,4 +1,3 @@
-import { SlackMessage, MinionModule } from '../types';
 import toombatize from '../graph/toombatize';
 import * as alchemy from '../lib/alchemy';
 import * as uuid from 'node-uuid'

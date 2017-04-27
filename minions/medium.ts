@@ -1,5 +1,4 @@
 import * as axios from 'axios';
-import { SlackMessage, MinionModule, MinionResult } from '../types'
 import * as links from './links'
 
 function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<MinionResult>> {

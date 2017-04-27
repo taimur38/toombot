@@ -1,4 +1,4 @@
-export interface MinionModule {
+interface MinionModule {
 	key: string,
 	onMessage: (msg : any) => Iterator<Promise<Object>>,
 	filter?: (msg : any) => boolean,
@@ -6,7 +6,7 @@ export interface MinionModule {
 }
 
 // it will either have generator field or init field. yes this makes no sense from this perspective
-export interface ActiveMinion {
+interface ActiveMinion {
 	generator?: Iterator<Promise<MinionResult>>,
 	init?: (msg: any) => Iterator<Promise<MinionResult>>,
 	requirements: string[],
@@ -15,16 +15,17 @@ export interface ActiveMinion {
 	contextMatch: (msg : SlackMessage) => boolean
 }
 
-export interface MinionResult extends Object {
+interface MinionResult extends Object {
 	filter?: (msg : any) => boolean,
 	text?: string,
 	send?: boolean,
 	requirements?: string[],
 	contextMatch?: (msg : SlackMessage) => boolean,
-	threadReply?: boolean
+	threadReply?: boolean,
+	channelOverride?: string
 }
 
-export interface SlackResponse {
+interface SlackResponse {
 	type: string,
 	channel: string,
 	user: string,
@@ -32,7 +33,7 @@ export interface SlackResponse {
 	ts: string
 }
 
-export interface SlackMessage {
+interface SlackMessage {
 	id: string,
 	text: string,
 	user: SlackUser,
@@ -43,7 +44,7 @@ export interface SlackMessage {
 	channel: SlackChannel
 }
 
-export interface SlackUser {
+interface SlackUser {
 	name: string,
 	id: string,
 	profile: {
@@ -53,7 +54,15 @@ export interface SlackUser {
 	}
 }
 
-export interface SlackChannel {
+interface SlackChannel {
 	name: string,
-	id: string
+	id: string,
+	members: string[],
+	purpose: {
+		value: string,
+		creator: string,
+		last_set: number
+	},
+	is_group: boolean,
+	is_mpim: boolean
 }

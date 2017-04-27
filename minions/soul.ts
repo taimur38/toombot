@@ -1,4 +1,3 @@
-import { MinionModule, SlackMessage, MinionResult } from '../types';
 import * as alchemy from './alchemize';
 
 function* onMessage(message : SlackMessage & alchemy.Response) : Iterator<Promise<MinionResult>> {

@@ -3,7 +3,6 @@ import { bot } from '../constants'
 import * as analyzer from './search/index'
 import * as commenter from './reddit'
 
-import { MinionModule, MinionResult, SlackMessage } from '../types'
 import * as context from './context'
 import * as alchemize from './alchemize'
 
@@ -172,8 +171,8 @@ function summarize(response: SlackMessage) : Promise<MinionResult> {
 }
 
 async function thoughts(response : SlackMessage & context.Response & alchemize.Response) : Promise<MinionResult> {
-	let concepts = response.context.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
-	let entities = response.context.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
+	let concepts = response.context.alchemy.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
+	let entities = response.context.alchemy.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
 
 	let concept_merge = [...entities, ...concepts].slice(0,2).reduce((all, c) => `${all} ${c.text}`, '');
 

@@ -1,4 +1,3 @@
-import { MinionModule, MinionResult, SlackMessage } from '../types';
 import * as context from './context'
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
@@ -11,14 +10,14 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 	})
 
 	yield Promise.resolve({
-		text: `${response.context.concepts.length} alchemy concepts in context`,
+		text: `${response.context.alchemy.concepts.length} alchemy concepts in context`,
 		send: true,
 		filter: (msg : SlackMessage) => msg.text.toLowerCase().indexOf('what are they') > -1,
 		contextMatch: (msg : SlackMessage) => msg.user.id == message.user.id && msg.channel.id == message.channel.id
 	});
 
 	return Promise.resolve({
-		text: `${response.context.concepts.map(c => c.text).join(',')}`,
+		text: `${response.context.alchemy.concepts.map(c => c.text).join(',')}`,
 		send: true
 	})
 

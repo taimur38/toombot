@@ -1,4 +1,3 @@
-import { MinionModule, SlackMessage, MinionResult } from '../types'
 import * as axios from 'axios';
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> { 

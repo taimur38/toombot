@@ -1,4 +1,3 @@
-import { SlackMessage, MinionModule } from '../types'
 import * as alchemize from './alchemize';
 
 const isLoc = (concept : any) => concept.geo || (concept.knowledgeGraph && concept.knowledgeGraph.typeHierarchy.indexOf("/places/") > -1);

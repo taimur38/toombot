@@ -1,7 +1,6 @@
 import * as axios from 'axios';
 import { bot } from '../constants'
 
-import { MinionModule, MinionResult, SlackMessage } from '../types'
 import * as context from './context'
 
 const session = axios.create({

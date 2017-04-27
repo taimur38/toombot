@@ -1,7 +1,6 @@
 import * as axios from 'axios';
 import { bot } from '../constants'
 
-import { MinionModule, MinionResult, SlackMessage } from '../types'
 import * as context from './context'
 import * as alchemy from './alchemize'
 
@@ -41,7 +40,7 @@ async function quotes(response : SlackMessage & context.Response & alchemy.Respo
 
   const match = response.text.match(/quote(.+)? (for|about|regarding|with|on) (.+)/i);
   console.log("MATCH: ", match)
-  let concept_merge = [...response.context.concepts, ...response.context.entities, ...response.context.keywords]
+  let concept_merge = [...response.context.alchemy.concepts, ...response.context.alchemy.entities, ...response.context.alchemy.keywords]
     .filter(c => c.relevance > context_threshold)
     .sort((a, b) => b.relevance - a.relevance);
 

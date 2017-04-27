@@ -4,7 +4,6 @@ const dom = require('xmldom').DOMParser;
 const xpath = require('xpath');
 
 import { wolframAppID } from '../constants'
-import { SlackMessage, MinionResult, MinionModule } from '../types'
 import * as isQuestion from './isQuestion'
 
 const parser = new dom();

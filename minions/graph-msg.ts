@@ -1,5 +1,4 @@
 import graph from '../graph'
-import { MinionModule, SlackMessage } from '../types'
 
 export interface Response {
 	graphMsg: boolean

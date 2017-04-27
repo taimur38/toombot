@@ -2,7 +2,6 @@ const neo4j = require('neo4j-driver').v1;
 
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
-import { SlackMessage } from '../types'
 import meta from './meta';
 import reaction from './reaction';
 import isRepost from './repost';

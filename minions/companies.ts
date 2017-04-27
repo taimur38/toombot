@@ -1,5 +1,4 @@
 import * as axios from 'axios';
-import { MinionModule, SlackMessage, MinionResult } from '../types';
 import * as alchemize from './alchemize'
 
 //const approvedExchanges = ['NAS', 'NYQ', 'NASDAQ'];

@@ -2,7 +2,6 @@ import * as axios from 'axios';
 const dom = require('xmldom').DOMParser;
 const xpath = require('xpath');
 
-import { SlackMessage, MinionResult, MinionModule } from '../types'
 import * as links from './links'
 
 const parser = new dom();

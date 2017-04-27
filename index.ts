@@ -5,7 +5,6 @@ import { EventEmitter } from 'events'
 import graph from './graph';
 //import * as minions from './minions';
 import * as minions from './minions/tree-sched';
-import { SlackMessage, SlackUser, SlackResponse } from './types';
 
 // import nlc from './lib/nlc';
 
@@ -103,7 +102,9 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 	*/
 
 	let slackResponse : SlackResponse;
-	if(response.threadReply || message.thread_ts)
+	if(response.channelOverride)
+		slackResponse = await sendMessage(response.text, { channel: { id: response.channelOverride }})
+	else if(response.threadReply || message.thread_ts)
 		slackResponse = await threadReply(response.text, message);
 	else
 		slackResponse = await sendMessage(response.text, message);
@@ -113,7 +114,7 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 
 });
 
-async function sendMessage(text : string, ogMessage : SlackMessage) : Promise<SlackResponse> {
+async function sendMessage(text : string, ogMessage : { channel: { id: string }}) : Promise<SlackResponse> {
 
 	return new Promise<SlackResponse>((resolve, reject) => {
 		rtm.sendMessage(text, ogMessage.channel.id, (err : Error, msg : SlackResponse) => {

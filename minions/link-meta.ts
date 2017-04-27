@@ -1,7 +1,6 @@
 import { DOMParser } from 'xmldom'
 import * as xpath from 'xpath';
 import * as axios from 'axios';
-import { SlackMessage, MinionModule } from '../types'
 import * as links from './links'
 
 const parser = new DOMParser({

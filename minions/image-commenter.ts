@@ -1,4 +1,3 @@
-import { SlackMessage, MinionModule, MinionResult } from '../types'
 import * as axios from 'axios'
 import * as imagize from './image-ize';
 import * as linkMeta from './link-meta'

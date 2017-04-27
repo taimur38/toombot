@@ -1,4 +1,3 @@
-import { SlackMessage, MinionModule } from '../types'
 const tone = require('../lib/tone')
 
 export interface Response {

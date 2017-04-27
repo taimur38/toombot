@@ -1,5 +1,3 @@
-import { SlackMessage, MinionModule } from '../types'
-
 export interface Response {
 	isQuestion: boolean
 }
