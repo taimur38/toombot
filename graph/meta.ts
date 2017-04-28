@@ -11,7 +11,6 @@ const graph = (message : any) => {
 		mentionize(message),
 		factize(message)
 	])
-	.then(() => console.log("I DID IT"))
 	.catch(err => {
 		console.error('promise all error in meta', err)
 	})
@@ -86,7 +85,6 @@ async function factize(message : any) {
 		}
 	}
 
-	console.log('logged all facts');
 	return true;
 }
 

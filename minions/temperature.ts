@@ -3,24 +3,24 @@ import * as context from './context';
 export interface Response {
 	temperature: {
 		raw_temperature: number,
-		temperature: Temp
+		temperature: Temp,
+		just_transitioned: boolean
 	}
 }
 
-enum Temp {
+export enum Temp {
 	Hot,
 	Medium,
 	Cold
 }
 
-function* onMessage(message : SlackMessage & context.Response) : Iterator<Promise<Response>> {
+function calculateTemperature(messages : SlackMessage[]) : number {
 
-
-	const people_involved 	= message.context.messages.map(m => m.user.name);
+	const people_involved 	= messages.map(m => m.user.name);
 	const uniques 			= people_involved.filter((p, i) => people_involved.indexOf(p) == i);
-	const links 			= message.context.messages.filter(m => m.text.search(/http/gi) > -1);
+	const links 			= messages.filter(m => m.text.search(/http/gi) > -1);
 
-	const merged_messages = message.context.messages.reduce((agg : SlackMessage[], curr : SlackMessage, idx : number) => {
+	const merged_messages = messages.reduce((agg : SlackMessage[], curr : SlackMessage, idx : number) => {
 		if(agg.length == 0)
 			return [curr];
 		
@@ -46,10 +46,38 @@ function* onMessage(message : SlackMessage & context.Response) : Iterator<Promis
 
 	console.log(messageRatio)
 
+	const raw_temperature = uniques.length * merged_messages.length;
+
+	return raw_temperature;
+}
+
+function getTempBucket(raw_temperature : number) : Temp {
+
+	let temperature = Temp.Cold;
+	if(raw_temperature > 50)
+		temperature = Temp.Medium;
+	
+	if(raw_temperature > 125)
+		temperature = Temp.Hot;
+	
+	return temperature;
+}
+
+function* onMessage(message : SlackMessage & context.Response) : Iterator<Promise<Response>> {
+
+	const raw_temperature = calculateTemperature(message.context.messages);
+	const prev_raw_temperature = calculateTemperature(message.context.messages.slice(0, message.context.messages.length - 1));
+
+	const temperature = getTempBucket(raw_temperature);
+	const prev_temp = getTempBucket(prev_raw_temperature);
+
+	console.log(raw_temperature, prev_raw_temperature);
+
 	return { 
 		temperature: {
-			raw_temperature: uniques.length * merged_messages.length,
-			temperature: Temp.Hot
+			raw_temperature,
+			temperature,
+			just_transitioned: prev_temp !== temperature
 		}
 	};
 
