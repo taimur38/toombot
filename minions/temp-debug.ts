@@ -20,14 +20,15 @@ function* onMessage(message : SlackMessage & temperature.Response & context.Resp
 			.forEach(c => topics.push(c));
 	}
 
-	const people_involved 	= message.context.messages.map(m => m.user.name);
-	const uniques 			= people_involved.filter((p, i) => people_involved.indexOf(p) == i);
+	const topic_sentence = topics.length > 0 ? topics.slice(0, topics.length - 1).join(", ") + ' and ' + topics[topics.length - 1] : '';
 
-	const topic_sentence = topics.slice(0, topics.length - 1).join(", ") + ' and ' + topics[topics.length - 1];
+	const important_people = message.temperature.features.message_ratio.sort((a, b) => b.ratio - a.ratio).slice(0, 3).map(p => p.name);
+
+	const important_sentence = important_people.slice(0, important_people.length - 1).join(", ") + ' and ' + important_people[important_people.length - 1];
 
 	if(message.temperature.temperature == temperature.Temp.Hot)
 		return {
-			text: `${message.channel.name} is heating up. ${uniques.length} people talking about ${topic_sentence}.`,
+			text: `#${message.channel.name} is heating up. It's mostly ${important_sentence} talking about ${topic_sentence}.`,
 			channelOverride: 'C2E8ZNS4X',
 			send: true,
 			threadReply: false

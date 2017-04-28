@@ -4,17 +4,23 @@ export interface Response {
 	temperature: {
 		raw_temperature: number,
 		temperature: Temp,
-		just_transitioned: boolean
+		just_transitioned: boolean,
+		features: {
+			unique_people: string[],
+			links: string[],
+			message_ratio: {name: string, ratio: number}[]
+		}
 	}
 }
 
 export enum Temp {
+	SuperLit,
 	Hot,
 	Medium,
 	Cold
 }
 
-function calculateTemperature(messages : SlackMessage[]) : number {
+function calculateTemperature(messages : SlackMessage[]) {
 
 	const people_involved 	= messages.map(m => m.user.name);
 	const uniques 			= people_involved.filter((p, i) => people_involved.indexOf(p) == i);
@@ -37,18 +43,22 @@ function calculateTemperature(messages : SlackMessage[]) : number {
 
 	}, [] as SlackMessage[])
 
-	let messageRatio = {};
+	let message_ratio = uniques.map(name => ({
+		ratio: merged_messages.filter(m => m.user.name == name).length / merged_messages.length,
+		name
+	}));
 
-	for(let u of uniques) {
-		const num_messages = merged_messages.filter(m => m.user.name == u).length;
-		messageRatio[u] = num_messages/merged_messages.length;
-	}
-
-	console.log(messageRatio)
+	console.log(message_ratio)
 
 	const raw_temperature = uniques.length * merged_messages.length;
 
-	return raw_temperature;
+	return {
+		uniques,
+		links,
+		merged_messages,
+		message_ratio,
+		raw_temperature
+	};
 }
 
 function getTempBucket(raw_temperature : number) : Temp {
@@ -60,24 +70,32 @@ function getTempBucket(raw_temperature : number) : Temp {
 	if(raw_temperature > 125)
 		temperature = Temp.Hot;
 	
+	if(raw_temperature > 300)
+		temperature = Temp.SuperLit;
+	
 	return temperature;
 }
 
 function* onMessage(message : SlackMessage & context.Response) : Iterator<Promise<Response>> {
 
-	const raw_temperature = calculateTemperature(message.context.messages);
-	const prev_raw_temperature = calculateTemperature(message.context.messages.slice(0, message.context.messages.length - 1));
+	const current_features = calculateTemperature(message.context.messages);
+	const prev_features = calculateTemperature(message.context.messages.slice(0, message.context.messages.length - 1));
 
-	const temperature = getTempBucket(raw_temperature);
-	const prev_temp = getTempBucket(prev_raw_temperature);
+	const temperature = getTempBucket(current_features.raw_temperature);
+	const prev_temp = getTempBucket(prev_features.raw_temperature);
 
-	console.log(raw_temperature, prev_raw_temperature);
+	console.log(current_features.raw_temperature, prev_features.raw_temperature);
 
 	return { 
 		temperature: {
-			raw_temperature,
+			raw_temperature: current_features.raw_temperature,
 			temperature,
-			just_transitioned: prev_temp !== temperature
+			just_transitioned: prev_temp !== temperature,
+			features: {
+				unique_people: current_features.uniques,
+				links: current_features.links,
+				message_ratio: current_features.message_ratio
+			}
 		}
 	};
 

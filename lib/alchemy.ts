@@ -114,6 +114,47 @@ export interface AllTheThings {
 	dates: any[]
 }
 
+interface Concept {
+	text: string,
+	relevance: number,
+	knowledgeGraph?: {
+		typeHierarchy?: string
+	},
+	website?: string,
+	dbpedia?: string,
+	freebase?: string,
+	yago?: string,
+}
+
+interface Entity {
+	text: string,
+	relevance: number,
+	knowledgeGraph?: {
+		typeHierarchy?: string
+	},
+	website?: string,
+	dbpedia?: string,
+	freebase?: string,
+	yago?: string,
+	sentiment: Sentiment,
+	emotions: Emotions,
+	count: number,
+	type?: string
+}
+
+interface Sentiment {
+	type: string,
+	score?: number
+}
+
+interface Emotions {
+	anger: string,
+	disgust: string,
+	fear: string,
+	joy: string,
+	sadness: string 
+}
+
 export function getAllTheThings(content : string, contentType? : string, sanitize? : boolean, timeout?: number) : Promise<AllTheThings> {
 	sanitize = sanitize || false;
 	contentType = contentType || 'text';
