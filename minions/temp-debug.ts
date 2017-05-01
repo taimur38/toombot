@@ -1,6 +1,22 @@
 import * as temperature from './temperature'
 import * as context from './context'
 
+const getListSentence = (arr : string[]) : string => {
+
+	if(arr.length == 0) {
+		return 'nothing';
+	}
+
+	if(arr.length == 1) {
+		return arr[0];
+	}
+
+	const topic_sentence = arr.slice(0, arr.length - 1).join(", ") + ' and ' + arr[arr.length - 1];
+
+	return topic_sentence;
+
+}
+
 function* onMessage(message : SlackMessage & temperature.Response & context.Response) : Iterator<Promise<MinionResult>> {
 
 
@@ -20,11 +36,11 @@ function* onMessage(message : SlackMessage & temperature.Response & context.Resp
 			.forEach(c => topics.push(c));
 	}
 
-	const topic_sentence = topics.length > 0 ? topics.slice(0, topics.length - 1).join(", ") + ' and ' + topics[topics.length - 1] : '';
+	const topic_sentence = getListSentence(topics);
 
 	const important_people = message.temperature.features.message_ratio.sort((a, b) => b.ratio - a.ratio).slice(0, 3).map(p => p.name);
 
-	const important_sentence = important_people.slice(0, important_people.length - 1).join(", ") + ' and ' + important_people[important_people.length - 1];
+	const important_sentence = getListSentence(important_people);
 
 	if(message.temperature.temperature == temperature.Temp.Hot)
 		return {
