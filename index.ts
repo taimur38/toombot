@@ -102,13 +102,33 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 	*/
 
 	let slackResponse : SlackResponse;
-	if(response.channelOverride)
+    if(response.DM)  {
+		const dm = rtm.dataStore.getDMByUserId(response.DM);
+		if(dm) {
+			slackResponse = await sendMessage(response.text, { channel: { id: dm.id } })
+		}
+		else {
+            let res;
+            try {
+				res = await web.im.open(response.DM)
+			}
+			catch(err) {
+				console.error(err)
+			}
+
+			if(res) {
+				slackResponse = await sendMessage(response.text, { channel: { id: res.channel.id }});
+			}
+		}
+	}
+	else if(response.channelOverride)
 		slackResponse = await sendMessage(response.text, { channel: { id: response.channelOverride }})
 	else if(response.threadReply || message.thread_ts)
 		slackResponse = await threadReply(response.text, message);
 	else
 		slackResponse = await sendMessage(response.text, message);
 
+    console.log(slackResponse)
 	graph.message(slackClean(slackResponse));
 	// minions.dispatch(myEmitter, slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
 

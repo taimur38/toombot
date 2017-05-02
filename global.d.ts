@@ -22,7 +22,8 @@ interface MinionResult extends Object {
 	requirements?: string[],
 	contextMatch?: (msg : SlackMessage) => boolean,
 	threadReply?: boolean,
-	channelOverride?: string
+	channelOverride?: string,
+	DM?: string
 }
 
 interface SlackResponse {
