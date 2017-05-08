@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import hello from './hello';
-import alchemize from './alchemize'
+import NLU from './alchemize'
 import companies from './companies';
 import context from './context';
 import links from './links';
@@ -53,7 +53,7 @@ now we have a normalized list of minions. schedule them, then execute
 
 const minion_modules : MinionModule[] = [
 	//hello,
-	alchemize,
+	NLU,
 	companies,
 	context,
 	links,

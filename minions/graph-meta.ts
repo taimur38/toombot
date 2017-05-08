@@ -1,4 +1,5 @@
-import * as alchmemize from './alchemize';
+//import * as alchmemize from './alchemize';
+import * as NLU from './alchemize'
 import * as linkMeta from './link-meta';
 import * as links from './links';
 import * as companies from './companies';
@@ -9,7 +10,7 @@ export interface Response {
 	graphMeta: boolean
 }
 
-type Message = SlackMessage & alchmemize.Response & linkMeta.Response & companies.Response & links.Response;
+type Message = SlackMessage & NLU.Response & linkMeta.Response & companies.Response & links.Response;
 
 function* onMessage(message : Message ) : Iterator<Promise<Response>> {
 
@@ -24,7 +25,7 @@ function* onMessage(message : Message ) : Iterator<Promise<Response>> {
 const mod : MinionModule = {
 	onMessage,
 	key: 'graphMeta',
-	requirements: ['graphMsg', 'alchemy', 'companies']
+	requirements: ['graphMsg', 'NLU', 'companies']
 };
 
 export default mod;

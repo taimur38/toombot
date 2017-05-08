@@ -1,7 +1,7 @@
 import * as axios  from 'axios'
 import { SearchResult } from '../search'
 import * as context from '../context'
-import * as alchemized from '../alchemize'
+import * as NLU from '../alchemize'
 
 // search is a function that
 // returns a promise that returns a list of:
@@ -15,15 +15,15 @@ const reddit_session = axios.create({
 	timeout: 3000
 })
 
-export const search = (message : SlackMessage & context.Response & alchemized.Response) : Promise<SearchResult[]> => {
+export const search = (message : SlackMessage & context.Response & NLU.Response) : Promise<SearchResult[]> => {
 
 	const context = message.context;
 	console.log(message)
 
-	const concept_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords]
+	const concept_merge = [...message.NLU.entities, ...message.NLU.concepts, ...message.NLU.keywords]
 		.reduce((agg, curr) => agg.indexOf(curr.text) > -1 ? agg : agg + " AND " + curr, '')
 
-	const contextualized_merge = [...message.alchemy.entities, ...message.alchemy.concepts, ...message.alchemy.keywords, ...message.context.alchemy.entities, ...message.context.alchemy.concepts]
+	const contextualized_merge = [...message.NLU.entities, ...message.NLU.concepts, ...message.NLU.keywords, ...message.context.NLU.entities, ...message.context.NLU.concepts]
 		.reduce((agg, curr) => {
 			if(agg == '') {
 				return curr.text;

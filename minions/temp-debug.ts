@@ -26,8 +26,8 @@ function* onMessage(message : SlackMessage & temperature.Response & context.Resp
 
 	let topics = [];
 	if(message.temperature.temperature == temperature.Temp.Hot) {
-		const entities = message.context.alchemy.entities.filter(e => e.relevance > 0.8);
-		const concepts = message.context.alchemy.concepts.filter(c => c.relevance > 0.8);
+		const entities = message.context.NLU.entities.filter(e => e.relevance > 0.8);
+		const concepts = message.context.NLU.concepts.filter(c => c.relevance > 0.8);
 
 		topics = entities.map(e => e.text);
 		concepts

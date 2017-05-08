@@ -1,11 +1,11 @@
-import * as alchemy from './alchemize';
+import * as NLU from './alchemize';
 
-function* onMessage(message : SlackMessage & alchemy.Response) : Iterator<Promise<MinionResult>> {
+function* onMessage(message : SlackMessage & NLU.Response) : Iterator<Promise<MinionResult>> {
 
-    if(!message.alchemy)
+    if(!message.NLU)
         return;
 
-    const emo = message.alchemy.emotions;
+    const emo = message.NLU.emotion;
 
     if(emo.disgust > .7 || emo.anger > .7)
         return Promise.resolve({
@@ -35,7 +35,7 @@ const mod : MinionModule = {
     key: 'soul',
     onMessage,
     filter: (msg : SlackMessage) => msg.mentions.some(x => x.name == "toombot") || msg.text.search(/(toombot|fiona)/gi) > -1,
-    requirements: ['alchemy']
+    requirements: ['NLU']
 }
 
 export default mod;

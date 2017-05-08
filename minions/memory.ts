@@ -1,11 +1,11 @@
 import { bot } from '../constants'
 import * as isQuestion from './isQuestion'
-import * as alchemy from './alchemize'
+import * as NLU from './alchemize'
 
 const neo4j = require('neo4j-driver').v1;
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
 
-function* onMessage(message: SlackMessage & isQuestion.Response & alchemy.Response): Iterator<Promise<MinionResult>> {
+function* onMessage(message: SlackMessage & isQuestion.Response & NLU.Response): Iterator<Promise<MinionResult>> {
 
   if (!message.isQuestion)
     return Promise.resolve(undefined);
@@ -13,7 +13,7 @@ function* onMessage(message: SlackMessage & isQuestion.Response & alchemy.Respon
   return getAnswer(message);
 }
 
-function getAnswer(message: SlackMessage & alchemy.Response): Promise<MinionResult> {
+function getAnswer(message: SlackMessage & NLU.Response): Promise<MinionResult> {
   const session = driver.session();
 
   return session.run(`
@@ -45,7 +45,7 @@ function getAnswer(message: SlackMessage & alchemy.Response): Promise<MinionResu
 const mod: MinionModule = {
   onMessage,
   key: 'memory',
-  requirements: ['isQuestion', 'alchemy'],
+  requirements: ['isQuestion', 'NLU'],
   filter: (msg: SlackMessage) => msg.mentions.some(x => x.name == "toombot")
 }
 

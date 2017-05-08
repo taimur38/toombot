@@ -31,3 +31,8 @@ export const bot = {
 }
 
 export const visualRecognitionAPIKey = process.env.VR_API_KEY;
+
+export const NLUCreds = {
+	username: process.env.NLU_USER,
+	password: process.env.NLU_PASS
+}

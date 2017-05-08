@@ -1,24 +1,23 @@
-import * as alchemy from '../lib/alchemy';
+import * as NLU from '../lib/nlu';
 
 export interface Response {
-	alchemy: alchemy.AllTheThings
+	NLU: NLU.AnalyzeResult
 }
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<Response>> {
 
 	const text = message.text;
 
-	return alchemy.getAllTheThings(text)
-		.then(things => ({ alchemy: things }))
-		.catch((err : Error) => {
-			console.log("Preprocessor: " + err);
-			console.log(err);
+	return NLU.analyze(text)
+		.then(result => ({ NLU: result }))
+		.catch((err : Error ) => {
+			console.log('Preprocessor: ' + err)
 			return;
 		})
 }
 
 export default {
 	onMessage,
-	key: 'alchemy',
+	key: 'NLU',
 	requirements: [],
 }

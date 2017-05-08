@@ -1,6 +1,7 @@
-import * as alchemy from '../../lib/alchemy'
+//import * as alchemy from '../../lib/alchemy'
+import * as NLULib from '../../lib/nlu'
 import * as context from '../context'
-import * as alchemize from '../alchemize'
+import * as NLU from '../alchemize'
 import * as links from '../links'
 
 import * as reddit from './reddit'
@@ -20,35 +21,37 @@ export interface SearchResult {
 	url: string,
 	source: string,
 	score: number,
-	alchemized: alchemy.AllTheThings
+	alchemized: NLULib.AnalyzeResult
 }
 
-function* onMessage(message : SlackMessage & context.Response & alchemize.Response) : Iterator<Promise<MinionResult>> {
+function* onMessage(message : SlackMessage & context.Response & NLU.Response) : Iterator<Promise<MinionResult>> {
 
+    /*
 	let context = {
 		concepts: [] as any[],
 		entities: [] as any[],
 		keywords: [] as any[],
 		taxonomy: [] as any[],
-		emotions: [] as any[],
+		emotion: [] as any[],
 		relations: [] as any[],
 		sentiment: 0,
 		imageKeywords: [] as any[],
 		dates: [] as any[]
 	}
 
-	message.context.alchemy = message.context.alchemy || context;
+	message.context.NLU = message.context.NLU || context;
+	*/
 
 	const msg = Object.assign({}, message, {
 		context: {
-			concepts: message.context.alchemy.concepts.filter((c) => parseFloat(c.relevance) > thresholds.concepts),
-			entities: message.context.alchemy.entities.filter((c) => parseFloat(c.relevance) > thresholds.entities)
+			concepts: message.context.NLU.concepts.filter((c) => c.relevance > thresholds.concepts),
+			entities: message.context.NLU.entities.filter((c) => c.relevance > thresholds.entities)
 		},
 		alchemy: {
-			concepts: message.alchemy.concepts.filter((c) => parseFloat(c.relevance) > thresholds.concepts),
-			entities: message.alchemy.entities.filter((c) => parseFloat(c.relevance) > thresholds.entities),
-			keywords: message.alchemy.keywords.filter((c) => parseFloat(c.relevance) > thresholds.keywords),
-			taxonomy: message.alchemy.taxonomy.filter((c) => parseFloat(c.relevance) > thresholds.taxonomy)
+			concepts: message.NLU.concepts.filter((c) => c.relevance > thresholds.concepts),
+			entities: message.NLU.entities.filter((c) => c.relevance > thresholds.entities),
+			keywords: message.NLU.keywords.filter((c) => c.relevance > thresholds.keywords),
+			taxonomy: message.NLU.categories.filter((c) => c.score > thresholds.taxonomy)
 		}
 	})
 
@@ -73,7 +76,7 @@ const analyze = (search_result : SearchResult) : Promise<SearchResult> => {
 		return Promise.resolve(search_result);
 	}
 
-	return alchemy.getAllTheThings(search_result.url, 'url', true, 5000)
+	return NLULib.analyze(search_result.url, 'url', 5000)
 		.then(alchemized => Object.assign({}, search_result, { alchemized }))
 		.catch(err => Object.assign({}, search_result, {
 			alchemized: {
@@ -104,29 +107,31 @@ const flatten = (engine_results : SearchResult[][]) : SearchResult[]  => {
 				{ concepts, entities, keywords, taxonomy, emotions, relations, sentiment, imageKeywords, dates}
 		}]
 */
-const rank = (analyzed_results : SearchResult[], original_message : SlackMessage & context.Response & alchemize.Response, thresholds : any) : (SearchResult & { context_score: number })[] => {
+const rank = (analyzed_results : SearchResult[], original_message : SlackMessage & context.Response & NLU.Response, thresholds : any) : (SearchResult & { context_score: number })[] => {
 
 	let context = {
 		concepts: [] as any[],
 		entities: [] as any[]
 	};
 
-	const { concepts, keywords, entities } = original_message.alchemy;
+	const { concepts, keywords, entities } = original_message.NLU;
 
 	return analyzed_results
 		.map(res => {
 			const post_concepts = res.alchemized.concepts
-				.filter((c) => parseFloat(c.relevance) > thresholds.concepts);
+				.filter((c) => c.relevance > thresholds.concepts);
 			const post_entities = res.alchemized.entities
-				.filter((c) => parseFloat(c.relevance) > thresholds.entities || (c.type == 'Person' && parseFloat(c.relevance) > thresholds.entities - 0.1));
+				.filter((c) => c.relevance > thresholds.entities || (c.type == 'Person' && c.relevance > thresholds.entities - 0.1));
 			const post_keywords = res.alchemized.keywords
-				.filter((c) => parseFloat(c.relevance) > thresholds.keywords);
+				.filter((c) => c.relevance > thresholds.keywords);
+            /*
 			const post_image_keywords = res.alchemized.imageKeywords
 				.filter((c) => parseFloat(c.score) > 0.3);
+			*/
 
 			return Object.assign({}, res, {
 				context_score: percentOverlap(
-					[...post_concepts, ...post_entities, ...post_keywords, ...post_image_keywords],
+					[...post_concepts, ...post_entities, ...post_keywords],
 					[...concepts, ...keywords, ...entities],
 					[...context.entities, ...context.concepts]
 				)
@@ -166,7 +171,7 @@ const mod = {
 	thresholds,
 	key: 'search',
 	filter: (msg : SlackMessage & links.Response) => msg.links.length > 0 && msg.text.split(' ').length >= 15,
-	requirements: ['alchemy', 'links']
+	requirements: ['NLU', 'links']
 }
 
 export default mod;

@@ -1,5 +1,5 @@
 import * as axios from 'axios';
-import * as alchemize from './alchemize'
+import * as NLU from './alchemize'
 
 //const approvedExchanges = ['NAS', 'NYQ', 'NASDAQ'];
 const isCompany = (concept : any) => concept.type == 'Company' || (concept.knowledgeGraph && concept.knowledgeGraph.typeHierarchy.toLowerCase().indexOf("companies") > -1);
@@ -18,9 +18,9 @@ interface Company {
 	evidence: string,
 }
 
-function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Promise<Response>> {
+function* onMessage(message : SlackMessage & NLU.Response) : Iterator<Promise<Response>> {
 
-	const companies = message.alchemy.entities.filter(isCompany).map((entity : any) => entity.text as string)
+	const companies = message.NLU.entities.filter(isCompany).map((entity : any) => entity.text as string)
 	const potential_symbols = message.text.split(' ').filter((word : string) => word.toUpperCase() == word && word.length >= 2 && word.length <= 4); //TODO: check numbers
 
 	return Promise.all([...companies, ...potential_symbols].map(lookupSymbol))
@@ -41,7 +41,7 @@ const lookupSymbol = (word : string) => axios.get(`http://d.yimg.com/aq/autoc?qu
 const mod : MinionModule = {
 	onMessage,
 	key: 'companies',
-	requirements: ['alchemy'],
+	requirements: ['NLU'],
 }
 
 export default mod;

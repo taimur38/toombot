@@ -2,7 +2,7 @@ import * as axios from 'axios';
 import { bot } from '../constants'
 
 import * as context from './context'
-import * as alchemy from './alchemize'
+import * as NLU from './alchemize'
 
 const neo4j = require('neo4j-driver').v1;
 const driver = neo4j.driver(`bolt://${process.env.NEO_URL}`, neo4j.auth.basic(process.env.NEO_USER, process.env.NEO_PASS))
@@ -11,7 +11,7 @@ const context_threshold = 0.4;
 const query_threshold = 0.4;
 const msg_threshold = 0.2;
 
-function* onMessage(message : SlackMessage & context.Response & alchemy.Response) : Iterator<Promise<MinionResult>> {
+function* onMessage(message : SlackMessage & context.Response & NLU.Response) : Iterator<Promise<MinionResult>> {
 
     let followUp = undefined;
     const response = yield quotes(message)
@@ -36,16 +36,16 @@ function* onMessage(message : SlackMessage & context.Response & alchemy.Response
 
 }
 
-async function quotes(response : SlackMessage & context.Response & alchemy.Response) : Promise<MinionResult> {
+async function quotes(response : SlackMessage & context.Response & NLU.Response) : Promise<MinionResult> {
 
   const match = response.text.match(/quote(.+)? (for|about|regarding|with|on) (.+)/i);
   console.log("MATCH: ", match)
-  let concept_merge = [...response.context.alchemy.concepts, ...response.context.alchemy.entities, ...response.context.alchemy.keywords]
+  let concept_merge = [...response.context.NLU.concepts, ...response.context.NLU.entities, ...response.context.NLU.keywords]
     .filter(c => c.relevance > context_threshold)
     .sort((a, b) => b.relevance - a.relevance);
 
   if(match) {
-    concept_merge = [...response.alchemy.concepts, ...response.alchemy.entities, ...response.alchemy.keywords]
+    concept_merge = [...response.NLU.concepts, ...response.NLU.entities, ...response.NLU.keywords]
       .filter(c => c.relevance > msg_threshold)
       .sort((a, b) => b.relevance - a.relevance);
   }
@@ -106,7 +106,7 @@ const mod : MinionModule = {
   onMessage,
 	key: 'quote',
 	filter: msg => msg.text.search(/quote/gi) > -1,
-  requirements: ['context', 'alchemy']
+  requirements: ['context', 'NLU']
 }
 
 export default mod;

@@ -1,11 +1,12 @@
-import { AllTheThings, getAllTheThings } from '../lib/alchemy'
+//import { AllTheThings, getAllTheThings } from '../lib/alchemy'
+import * as NLU from '../lib/nlu'
 
 const interval = 30 * 60 * 1000; // 30 minutes
 
 const key = 'context'
 export interface Response {
 	context: {
-		alchemy: AllTheThings,
+		NLU: NLU.AnalyzeResult,
 		messages: SlackMessage[]
 	}
 }
@@ -17,10 +18,10 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult & Re
 	while(true) {
 		const transcript = previousMessages.reduce((agg, curr, idx) => idx == 0 ? curr.text : agg + '. ' + curr.text, '');
 
-		const nextMessage = yield getAllTheThings(transcript)
+		const nextMessage = yield NLU.analyze(transcript)
 			.then(alchemized => ({
 				context: {
-					alchemy: alchemized,
+					NLU: alchemized,
 					messages: previousMessages
 				},
 				contextMatch: (msg : SlackMessage) => msg.channel.id == message.channel.id

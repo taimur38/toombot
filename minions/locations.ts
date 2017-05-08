@@ -1,4 +1,4 @@
-import * as alchemize from './alchemize';
+import * as NLU from './alchemize';
 
 const isLoc = (concept : any) => concept.geo || (concept.knowledgeGraph && concept.knowledgeGraph.typeHierarchy.indexOf("/places/") > -1);
 
@@ -9,20 +9,20 @@ export interface Response {
 	}
 }
 
-function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Promise<Response>> {
+function* onMessage(message : SlackMessage & NLU.Response) : Iterator<Promise<Response>> {
 
 	let temp = {};
 
-	if(message.alchemy.concepts) {
-		message.alchemy.concepts
+	if(message.NLU.concepts) {
+		message.NLU.concepts
 			.filter(isLoc)
 			.forEach(concept => {
 				temp[concept.text.toLowerCase()] = Math.max(temp[concept.text.toLowerCase()] || 0, concept.relevance);
 			})
 	}
 
-	if(message.alchemy.entities) {
-		message.alchemy.entities
+	if(message.NLU.entities) {
+		message.NLU.entities
 			.filter(isLoc)
 			.forEach(entity => {
 				temp[entity.text.toLowerCase()] = Math.max(temp[entity.text.toLowerCase()] || 0, entity.relevance);
@@ -59,7 +59,7 @@ function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Prom
 const mod : MinionModule = {
 	onMessage,
 	key: 'locations',
-	requirements: ['alchemy']
+	requirements: ['NLU']
 }
 
 export default mod;

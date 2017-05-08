@@ -1,5 +1,5 @@
 import * as axios from 'axios';
-import * as alchemize from './alchemize'
+import * as NLU from './alchemize'
 
 const session = axios.create({
 	baseURL: 'http://reddit.com',
@@ -8,10 +8,10 @@ const session = axios.create({
 	}
 })
 
-function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Promise<MinionResult>> {
+function* onMessage(message : SlackMessage & NLU.Response) : Iterator<Promise<MinionResult>> {
 
-	let concepts = message.alchemy.concepts.filter((c) => parseFloat(c.relevance) > 0.7);
-	let entities = message.alchemy.entities.filter((c) => parseFloat(c.relevance) > 0.7 || (c.type == 'Person' && parseFloat(c.relevance) > 0.5));
+	let concepts = message.NLU.concepts.filter((c) => c.relevance > 0.7);
+	let entities = message.NLU.entities.filter((c) => c.relevance > 0.7 || (c.type == 'Person' && c.relevance > 0.5));
 
 	let concept_merge = [...entities].reduce((all, c) => `${all} ${c.text}`, '');
 
@@ -40,7 +40,7 @@ function* onMessage(message : SlackMessage & alchemize.Response) : Iterator<Prom
 const mod : MinionModule = {
 	onMessage,
 	key: 'redditEnrichment',
-	requirements: ['alchemy'],
+	requirements: ['NLU'],
 	filter: (msg : SlackMessage) => msg.text.split(' ').length > 5
 }
 

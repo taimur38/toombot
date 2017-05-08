@@ -24,7 +24,7 @@ function* onMessage(message : SlackMessage ) : Iterator<Promise<MinionResult>> {
 		threadReply: true,
 		filter: (msg : SlackMessage) => msg.text.search(/thoughts|think about|what is|test|fact|learned|summarize/gi) > -1,
 		contextMatch: (msg : SlackMessage) => msg.user.id == message.user.id && msg.channel.id == message.channel.id,
-		requirements: ['context', 'alchemy', 'links']
+		requirements: ['context', 'NLU', 'links']
 	});
 
 	if(response.text.search(/thoughts/gi) > -1) { //context
@@ -171,8 +171,8 @@ function summarize(response: SlackMessage) : Promise<MinionResult> {
 }
 
 async function thoughts(response : SlackMessage & context.Response & alchemize.Response) : Promise<MinionResult> {
-	let concepts = response.context.alchemy.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
-	let entities = response.context.alchemy.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
+	let concepts = response.context.NLU.concepts.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance)
+	let entities = response.context.NLU.entities.filter(c => c.relevance > 0.4).sort((a,b) => b.relevance - a.relevance);
 
 	let concept_merge = [...entities, ...concepts].slice(0,2).reduce((all, c) => `${all} ${c.text}`, '');
 
