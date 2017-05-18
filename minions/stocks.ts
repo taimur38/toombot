@@ -2,7 +2,7 @@ import * as axios from 'axios';
 
 function queryCrypto(symbol) {
   return axios.get(`https://api.cryptonator.com/api/ticker/${symbol}-usd`)
-  .then(res => res.ticker)
+  .then(res => res.data.ticker)
   .then(ticker => {
     text: [
       `Price: ${ticker.price}`,
@@ -16,13 +16,12 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
     const crypto = message.text.match(/\$\$(\w+)/);
     if (crypto)
       return queryCrypto(crypto[0])
+
     const match = message.text.match(/\$(\w+)/);
     if(!match)
         return undefined;
 
     const symbol = match[1];
-
-
 
     const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?formatted=true&crumb=lnRQn70gX0Q&lang=en-US&region=US&modules=summaryProfile,financialData,recommendationTrend,upgradeDowngradeHistory,earnings,defaultKeyStatistics,calendarEvents,assetProfile,topHoldings,fundPerformance,fundProfile`;
     const chart_url = `https://query2.finance.yahoo.com/v7/finance/chart/${symbol}?range=1mo&interval=1d&indicators=quote&includeTimestamps=true&includePrePost=false`
