@@ -1,21 +1,38 @@
 import * as axios from 'axios';
 
 function queryCrypto(symbol) {
+  console.log(symbol);
   return axios.get(`https://api.cryptonator.com/api/ticker/${symbol}-usd`)
-  .then(res => res.data.ticker)
-  .then(ticker => {
-    text: [
-      `Price: ${ticker.price}`,
-      `Volume: ${ticker.volume}`,
-      `Change: ${ticker.change}`,
-    ].join("\n")
+  .then(res => {
+      console.log(res.data)
+      return (res.data as any).ticker;
+  })
+  .then((ticker : any) => { 
+      
+      const up = ":green_arrow_up:"
+      const down = ":red_arrow_down:"
+      const formattedPrice = parseFloat(ticker.price).toFixed(2);
+      const dayModifier = parseFloat(ticker.change) > 0 ? up : down;
+      const formattedChange = parseFloat(ticker.change) > 0 ? parseFloat(ticker.change).toFixed(2) : (-1 * parseFloat(ticker.change)).toFixed(2);
+
+      return {
+          text: [
+              `Current: $${formattedPrice}`,
+              `Hour: ${up} ${formattedChange}%`
+          ].join("\n"),
+          send: true
+      }
+
   })
 }
 
 function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
     const crypto = message.text.match(/\$\$(\w+)/);
-    if (crypto)
-      return queryCrypto(crypto[0])
+    console.log(crypto)
+    if (crypto) {
+      console.log('woo')
+      return queryCrypto(crypto[1])
+    }
 
     const match = message.text.match(/\$(\w+)/);
     if(!match)
