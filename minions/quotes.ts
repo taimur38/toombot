@@ -36,7 +36,7 @@ function* onMessage(message : SlackMessage & context.Response & alchemy.Response
 
 }
 
-async function quotes(response : SlackMessage & context.Response & alchemy.Response) : Promise<MinionResult> {
+async function quotes(response : SlackMessage & context.Response & alchemy.Response) : Promise<MinionResult & { evidence: string }> {
 
   const match = response.text.match(/quote(.+)? (for|about|regarding|with|on) (.+)/i);
   console.log("MATCH: ", match)
