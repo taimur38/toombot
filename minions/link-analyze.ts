@@ -6,6 +6,9 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 	if(message.links.length == 0)
 		return;
     
+    if(message.links[0].url.indexOf("twitter") > -1)
+        return;
+    
     return getAllTheThings(message.links[0].url, 'url', false)
         .then(resp => {
             const assertions = resp.relations
@@ -23,29 +26,6 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
         .catch(err => console.error("link analyze", err))
 
 }
-/*
- if(alchemy.has("relations")) {
- 14             JSONArray relations = alchemy.getJSONArray("relations");
- 13
- 12             HashSet<String> existing = new HashSet<String>();
- 11             for(int i = 0; i < relations.length(); i++) {
- 10                 JSONObject r = relations.getJSONObject(i);
-  9
-  8                 try {
-  7                     if(r.getJSONObject("action").getString("lemmatized").indexOf("be") >= 0) {
-  6                         String s = r.getString("sentence");
-  5                         if(!existing.contains(s)) {
-  4                             Sentences.add(s);
-  3                             existing.add(s);
-  2                         }
-  1                     }
-  0                 } catch(Exception e) {
-  1
-  2                 }
-  3
-  4             }
-  5         }
-  */
 
 const mod : MinionModule = {
 	onMessage,
