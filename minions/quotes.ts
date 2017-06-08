@@ -78,7 +78,7 @@ async function quotes(response : SlackMessage & context.Response & alchemy.Respo
   try {
     const results = await Promise.race([session.run(query), timeoutPromise(5000)]);
     if(!results) {
-      return { text: `query timed out` }
+      return { text: `query timed out`, evidence: "IT TIMED OUT" }
 
     }
 

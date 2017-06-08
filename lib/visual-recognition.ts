@@ -18,8 +18,7 @@ export async function classify(imageUrl : string) : Promise<classifiedImage> {
         return payload.images[0];
 
     } catch(e) {
-
-        console.error(e);
+        console.error("visual", e.data || e);
     }
 
     return null;

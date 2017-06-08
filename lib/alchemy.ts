@@ -24,7 +24,6 @@ const _urlBases : Object & {[p: string] : string} = {
 	keys = new_keys;
 } */
 
-
 function rotate_key() {
 	key = keys.shift();
 	keys.push(key);

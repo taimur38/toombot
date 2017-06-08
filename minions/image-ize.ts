@@ -18,6 +18,12 @@ function* onMessage(message : SlackMessage & linkMeta.Response) : Iterator<Promi
 		return Promise.resolve()
 
 	return classify(image_link.label)
+		.then(x => { 
+			if(x == undefined) {
+				throw new Error('');
+			}
+			return x;
+		})
 		.then(x => { console.log(x.classifiers); return x; })
 		.then(things => ({ imageTags: things.classifiers }))
 		.catch(err => {

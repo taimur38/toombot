@@ -25,6 +25,7 @@ import tempDebug from './temp-debug'
 import soul from './soul';
 import memory from './memory';
 import imdb from './imdb';
+import linkAnalyze from './link-analyze';
 
 interface Node {
 	key: string,
@@ -76,7 +77,8 @@ const minion_modules : MinionModule[] = [
 	temperature,
 	tempDebug,
 	memory,
-	imdb
+	imdb,
+	linkAnalyze
 	//imageCommenter
 ];
 
