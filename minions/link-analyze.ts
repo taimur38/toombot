@@ -6,7 +6,7 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 	if(message.links.length == 0)
 		return;
     
-    if(message.links[0].url.indexOf("twitter") > -1)
+    if(message.links[0].url.search(/twitter|youtube|imgur|gif/gi) > -1)
         return;
     
     return getAllTheThings(message.links[0].url, 'url', false)
