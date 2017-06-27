@@ -6,7 +6,7 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
 	if(message.links.length == 0)
 		return;
     
-    if(message.links[0].url.search(/twitter|youtube|imgur|gif/gi) > -1)
+    if(message.links[0].url.search(/twitter|soundcloud|youtu|imgur|gif|jpg|png/gi) > -1)
         return;
     
     return getAllTheThings(message.links[0].url, 'url', false)
@@ -16,11 +16,12 @@ function* onMessage(message : SlackMessage & links.Response) : Iterator<Promise<
                 .map(r => r.sentence)
                 .filter((sentence, idx, all) => all.findIndex(x => x == sentence) == idx)
             
-            return {
-                //text: "\`\`\`" + assertions.map(s => "- " + s.trim()).join('\n') + "\`\`\`",
-                text: assertions.map(s => "• " + s).join('\n'),
-                send: true,
-                threadReply: true
+            if(assertions.length > 2) {
+                return {
+                    text: assertions.map(s => "• " + s).join('\n'),
+                    send: true,
+                    threadReply: true
+                }
             }
         })
         .catch(err => console.error("link analyze", err))
