@@ -10,7 +10,7 @@ const blacklist_str = "(" + blacklist.join(")|(") + ")";
 const blacklist_regex = new RegExp(blacklist_str);
 
 
-const _url = 'http://access.alchemyapi.com/calls';
+const _url = 'https://access.alchemyapi.com/calls';
 const _urlBases : Object & {[p: string] : string} = {
 	text: _url + '/text/Text',
 	url: _url + '/url/URL',
