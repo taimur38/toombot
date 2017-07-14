@@ -26,6 +26,7 @@ import soul from './soul';
 import memory from './memory';
 import imdb from './imdb';
 import linkAnalyze from './link-analyze';
+import pins from './pins';
 
 interface Node {
 	key: string,
@@ -78,7 +79,8 @@ const minion_modules : MinionModule[] = [
 	tempDebug,
 	memory,
 	imdb,
-	linkAnalyze
+	linkAnalyze,
+	pins
 	//imageCommenter
 ];
 
