@@ -1,12 +1,27 @@
 import * as axios from 'axios';
 
-function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> { 
+function queryCrypto(symbol) {
+  return axios.get(`https://api.cryptonator.com/api/ticker/${symbol}-usd`)
+  .then(res => res.data.ticker)
+  .then(ticker => {
+    text: [
+      `Price: ${ticker.price}`,
+      `Volume: ${ticker.volume}`,
+      `Change: ${ticker.change}`,
+    ].join("\n")
+  })
+}
+
+function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
+    const crypto = message.text.match(/\$\$(\w+)/);
+    if (crypto)
+      return queryCrypto(crypto[0])
+
     const match = message.text.match(/\$(\w+)/);
     if(!match)
         return undefined;
-    
+
     const symbol = match[1];
-    console.log(symbol)
 
     const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?formatted=true&crumb=lnRQn70gX0Q&lang=en-US&region=US&modules=summaryProfile,financialData,recommendationTrend,upgradeDowngradeHistory,earnings,defaultKeyStatistics,calendarEvents,assetProfile,topHoldings,fundPerformance,fundProfile`;
     const chart_url = `https://query2.finance.yahoo.com/v7/finance/chart/${symbol}?range=1mo&interval=1d&indicators=quote&includeTimestamps=true&includePrePost=false`
@@ -37,14 +52,14 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
             const down = ":red_arrow_down:"
             let descriptor = up;
             if(percent < 0){
-                descriptor = down; 
+                descriptor = down;
                 percent = -1 * percent;
             }
 
-            let dayDescrip = up; 
+            let dayDescrip = up;
             let dayPercent = (currentPrice - initialDay)/initialDay * 100;
             if(dayPercent < 0) {
-                dayDescrip = down; 
+                dayDescrip = down;
                 dayPercent = -1 * dayPercent;
             }
 
@@ -69,7 +84,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
                 ceoInfo
             ];
 
-            return { 
+            return {
                 text: lines.join('\n')
             }
         })
