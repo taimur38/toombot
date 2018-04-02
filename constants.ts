@@ -31,3 +31,5 @@ export const bot = {
 }
 
 export const visualRecognitionAPIKey = process.env.VR_API_KEY;
+
+export const omdbKey = process.env.OMDB_KEY;

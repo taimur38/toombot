@@ -1,10 +1,12 @@
 import * as axios from 'axios';
 
+import {omdbKey} from '../constants'
+
 function* onMessage(message: SlackMessage): Iterator<Promise<MinionResult>> {
 
 	let query = message.text.replace('imdb ', '');
 
-	return axios.get(`http://www.omdbapi.com/?t=${query}`)
+	return axios.get(`http://www.omdbapi.com/?t=${query}&apikey=${omdbKey}`)
 		.then(res => {
 			let response = '';
 			if (res.data['Plot'])
