@@ -72,7 +72,7 @@ const minion_modules : MinionModule[] = [
 	wolfram,
 	imageize,
 	tankHunter,
-	quotes,
+	//quotes,
 	stocks,
 	soul,
 	temperature,
