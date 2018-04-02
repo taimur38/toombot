@@ -79,7 +79,7 @@ const minion_modules : MinionModule[] = [
 	tempDebug,
 	memory,
 	imdb,
-	linkAnalyze,
+	//linkAnalyze,
 	pins
 	//imageCommenter
 ];
