@@ -48,7 +48,7 @@ function calculateTemperature(messages : SlackMessage[]) {
 		name
 	}));
 
-	console.log(message_ratio)
+	//console.log(message_ratio)
 
 	const raw_temperature = uniques.length * merged_messages.length;
 

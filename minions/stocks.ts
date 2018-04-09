@@ -17,6 +17,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 		.then(compoundResult => {
 			//console.log(data.quoteSummary.result);
 			const result = compoundResult.financials.quoteSummary.result[0];
+			console.log(Object.keys(result))
 
 			const isETF = result.fundPerformance !== undefined;
 
@@ -49,11 +50,16 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 			}
 
 			if(!isETF) {
-				const officers = result.assetProfile.companyOfficers;
-				const bigBoss = officers.sort((a, b) => (b.totalPay ? b.totalPay.raw : 0) - (a.totalPay ? a.totalPay.raw : 0))[0];
+				try {
+					const officers = result.assetProfile.companyOfficers;
+					const bigBoss = officers.sort((a, b) => (b.totalPay ? b.totalPay.raw : 0) - (a.totalPay ? a.totalPay.raw : 0))[0];
 
-				if(bigBoss.totalPay && bigBoss.totalPay.fmt)
-					ceoInfo = `The highest paid officer is ${bigBoss.name}, the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
+					if(bigBoss.totalPay && bigBoss.totalPay.fmt)
+						ceoInfo = `The highest paid officer is ${bigBoss.name}, the ${bigBoss.title} who makes ${bigBoss.totalPay.fmt}`;
+				}
+				catch(e) {
+					console.error(e);
+				}
 			}
 
 			const base = `*${symbol}: ${name}*\nCurrent:   $${currentPrice.toFixed(2)}\nToday:    ${dayDescrip} ${dayPercent.toFixed(2)}%\nMonth:   ${descriptor} ${percent.toFixed(2)}%`
@@ -64,7 +70,7 @@ function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
 			}
 			const lines = [
 				base,
-				`Forward P/E: ${result.defaultKeyStatistics.forwardPE.fmt}`,
+				result.defaultKeyStatistics ? `Forward P/E: ${result.defaultKeyStatistics.forwardPE.fmt}` : 'no p/e data', 
 				`Analyst recommendation: *${result.financialData.recommendationKey.toUpperCase()}* based on ${result.financialData.numberOfAnalystOpinions.fmt} Analyst Opinions.`,
 				ceoInfo
 			];

@@ -128,7 +128,7 @@ myEmitter.on('send', async function(response : any, message : SlackMessage) {
 	else
 		slackResponse = await sendMessage(response.text, message);
 
-    console.log(slackResponse)
+	console.log(slackResponse)
 	graph.message(slackClean(slackResponse));
 	// minions.dispatch(myEmitter, slackClean(slackResponse)); // analyze and graph toombot output -- output of this doesn't get sent.
 
