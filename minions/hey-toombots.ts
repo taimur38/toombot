@@ -16,6 +16,14 @@ const session = axios.create({
 	}
 })
 
+function* onMessage(message : SlackMessage) : Iterator<Promise<MinionResult>> {
+	return Promise.resolve({
+		send: true,
+		text: "hey is for horses"
+	})
+}
+
+/*
 function* onMessage(message : SlackMessage ) : Iterator<Promise<MinionResult>> {
 
 	const response = yield Promise.resolve({
@@ -45,6 +53,7 @@ function* onMessage(message : SlackMessage ) : Iterator<Promise<MinionResult>> {
 	else
 		return undefined;
 }
+*/
 
 function getFact(message : SlackMessage) : Promise<MinionResult> {
 	const session = driver.session();
