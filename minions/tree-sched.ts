@@ -64,7 +64,7 @@ const minion_modules : MinionModule[] = [
 	graphMsg,
 	graphMeta,
 	locations,
-	heyToombots,
+	//heyToombots,
 	isQuestion,
 	redditEnrichment,
 	medium,
